@@ -27,7 +27,7 @@ public class Remind {
      * @param dateTimeOfRemind дата и время отправки напоминания пользователю
      * @param userId идентификатор пользователя
      */
-    public Remind(String title, String description, LocalDateTime dateTimeOfRemind, long userId) {
+    public Remind(String title, String description, LocalDateTime dateTimeOfRemind, Long userId) {
         this.title = title;
         this.description = description;
         this.dateTimeOfRemind = dateTimeOfRemind;
@@ -40,7 +40,7 @@ public class Remind {
     @Id
     @Column(name = "remind_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long remindId;
+    private Long remindId;
 
 
     /**
@@ -69,6 +69,18 @@ public class Remind {
      * Поле идентификатор пользователя
      */
     @Column(name="user_id")
-    private long userId;
+    private Long userId;
+
+    public Long getRemindId() {
+        return remindId;
+    }
+
+    public void setRemindId(Long remindId) {
+        this.remindId = remindId;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
 }

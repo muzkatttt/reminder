@@ -27,4 +27,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     User findByEmail(String email);
 
+    /**
+     * Метод проверяет, существует ли пользователь с таким же email перед созданием нового пользователя
+     * @param email адрес электронной почты
+     * @return  true существует
+     *          false не существует
+     */
+    boolean existsByEmail(String email);
 }

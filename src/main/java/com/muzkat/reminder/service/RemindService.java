@@ -26,7 +26,7 @@ public class RemindService {
      * @param remind
      * @return remind
      */
-    public Remind createRemind(Remind remind){
+    public Remind createRemind(Remind remind) {
         remind.setRemindId(remind.getRemindId());
         return remindRepository.save(remind);
     }
@@ -36,31 +36,41 @@ public class RemindService {
      * Метод удаления напоминания по id напоминания
      * @param id
      */
-    public void deleteRemind(long id){
+    public void deleteRemind(Long id) {
         remindRepository.deleteById(id);
     }
 
 
     /**
-     * Метод обновления напоминания
+     * Метод обновления напоминания по краткому описанию
+     * @param title краткое описание напоминания
+     * @param remind напоминание
+     * @return remind
+     */
+    public Remind updateRemindByTitle(String title, Remind remind) {
+        remind.setTitle(title);
+        return remindRepository.save(remind);
+    }
+
+    /**
+     * Метод обновления напоминания по идентификатору
      * @param id идентификатор напоминания
      * @param remind напоминание
      * @return remind
      */
-    public Remind updateRemind(long id, Remind remind){
+    public Remind updateRemindById(Long id, Remind remind) {
         remind.setRemindId(id);
         return remindRepository.save(remind);
     }
-
 
     /**
      * Метод поиска напоминания по краткому описанию
      * @param title краткое описание напоминания
      * @return remind
      */
-    public Remind findRemindByTitle(String title){
+    public Remind findRemindByTitle(String title) {
         Remind remind = remindRepository.findByTitle(title);
-        if (remind == null){
+        if (remind == null) {
             throwNotFoundExceptionByTitle(title);
         }
         return remind;
@@ -72,9 +82,9 @@ public class RemindService {
      * @param description
      * @return remind
      */
-    public Remind findRemindByDescription(String description){
+    public Remind findRemindByDescription(String description) {
         Remind remind = remindRepository.findByDescription(description);
-        if (remind == null){
+        if (remind == null) {
             throwNotFoundExceptionByDescription(description);
         }
         return remind;
@@ -86,7 +96,7 @@ public class RemindService {
      * @param localDateTime
      * @return remind
      */
-    public Remind findRemindByDate(LocalDateTime localDateTime){
+    public Remind findRemindByDate(LocalDateTime localDateTime) {
         return remindRepository.findByDate(localDateTime);
     }
 
@@ -96,7 +106,7 @@ public class RemindService {
      * @param localDateTime
      * @return remind
      */
-    public Remind findRemindByTime(LocalDateTime localDateTime){
+    public Remind findRemindByTime(LocalDateTime localDateTime) {
         return remindRepository.findByTime(localDateTime);
     }
 
@@ -105,7 +115,7 @@ public class RemindService {
      * Исключение, если по краткому описанию напоминание не найдено
      * @param title
      */
-    private void throwNotFoundExceptionByTitle(String title){
+    private void throwNotFoundExceptionByTitle(String title) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, TITLE_NOT_FOUND_MESSAGE + title);
     }
 
@@ -114,7 +124,7 @@ public class RemindService {
      * Исключение, если по полному описанию напоминание не найдено
      * @param description
      */
-    private void throwNotFoundExceptionByDescription(String description){
+    private void throwNotFoundExceptionByDescription(String description) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, DESCRIPTION_NOT_FOUND_MESSAGE + description);
     }
 
@@ -122,7 +132,7 @@ public class RemindService {
     /**
      * Поле экземпляр {@link RemindRepository}
      */
-    private final RemindRepository remindRepository;
+    private RemindRepository remindRepository;
 
 
     /** Поле сообщение, если по краткому описанию напоминание не найдено */

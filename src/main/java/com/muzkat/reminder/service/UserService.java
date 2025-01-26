@@ -23,9 +23,14 @@ public class UserService {
      * @return сохраненный объект пользователя
      */
     public User createUser(User user){
-        user.setId(user.getId());
+        if (userRepository.existsByEmail(user.getUserEmail())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, NOT_FOUND_MESSAGE + user.getUserEmail());
+        }
+        user.setId(null);
+        validateUser(user);
         return userRepository.save(user);
     }
+
 
     /**
      * Метод для обновления пользователя в базе данных
@@ -33,7 +38,7 @@ public class UserService {
      * @param user объект пользователя с обновленными данными
      * @return обновленный объект пользователя
      */
-    public User updateUser(long id, User user){
+    public User updateUser(Long id, User user){
         checkExistsById(id);
         user.setId(id);
         return userRepository.save(user);
@@ -43,18 +48,17 @@ public class UserService {
      * Метод для удаления пользователя из базы данных по его идентификатору.
      * @param id идентификатор пользователя, которого нужно удалить
      */
-    public void deleteById(long id){
+    public void deleteById(Long id){
         checkExistsById(id);
         userRepository.deleteById(id);
     }
-
 
     /**
      * Метод поиска пользователя по его идентификатору
      * @param id идентификатор пользователя
      * @return объект пользователя (если он найден)
      */
-    public User findById(long id){
+    public User findById(Long id){
         User user = userRepository.findById(id).orElse(null);
         if (user==null){
             throwNotFoundExceptionById(id);
@@ -62,13 +66,37 @@ public class UserService {
         return user;
     }
 
+
     /**
      * Метод проверки существования пользователя с указанным идентификатором.
      * @param id идентификатор пользователя для проверки
      */
-    private void checkExistsById(long id){
+    private void checkExistsById(Long id){
         if(!userRepository.existsById(id)){
             throwNotFoundExceptionById(id);
+        }
+    }
+
+    /**
+     * Метод проверки существования пользователя с указанным адресом электронной почты.
+     * @param email адрес электронной почты пользователя для проверки
+     */
+    private void checkExistsByEmail(String email){
+        if(!userRepository.existsByEmail(email)){
+            throwNotFoundExceptionByEmail(email);
+        }
+    }
+
+    /**
+     * Метод для валидации пользователя по адресу электронной почты и по имени
+     * @param user поьзователь, для которого осуществляется проверка
+     */
+    private void validateUser(User user) {
+        if (user.getUserEmail() == null || user.getUserEmail().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email должен быть указан!");
+        }
+        if(user.getName() == null || user.getName().isEmpty()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Имя пользователя должно быть указано!");
         }
     }
 
@@ -77,15 +105,26 @@ public class UserService {
      * @param id идентификатор пользователя, по которому найдено совпадение
      * @throws ResponseStatusException всегда
      */
-    private void throwNotFoundExceptionById(long id){
+    private void throwNotFoundExceptionById(Long id){
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, NOT_FOUND_MESSAGE + id);
     }
 
+    /**
+     * Исключение, если пользователь с указанным адресом электронной почты не найден.
+     * @param email адрес электронной почты пользователя, по которому найдено совпадение
+     * @throws ResponseStatusException всегда
+     */
+    private void throwNotFoundExceptionByEmail(String email){
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, NOT_FOUND_MESSAGE + email);
+    }
+
     /** Поле экземпляр UserRepository */
-    private final UserRepository userRepository;
+    private UserRepository userRepository;
 
 
     /** Статическое поле - сообщение, если пользователь не найден */
-    public static final String NOT_FOUND_MESSAGE = "Не удалось найти пользователя c id=";
+    public static final String NOT_FOUND_MESSAGE = "Не удалось найти пользователя c: ";
 
 }
+
+
