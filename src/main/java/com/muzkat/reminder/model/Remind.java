@@ -20,6 +20,19 @@ import java.time.LocalDateTime;
 @Table(name= "reminds")
 public class Remind {
 
+    /**
+     * Конструктор - создание нового объекта
+     * @param title краткое описание
+     * @param description полное описание
+     * @param dateTimeOfRemind дата и время отправки напоминания пользователю
+     * @param userId идентификатор пользователя
+     */
+    public Remind(String title, String description, LocalDateTime dateTimeOfRemind, long userId) {
+        this.title = title;
+        this.description = description;
+        this.dateTimeOfRemind = dateTimeOfRemind;
+        this.userId = userId;
+    }
 
     /**
      * Поле уникальный идентификатор напоминания
@@ -57,20 +70,5 @@ public class Remind {
      */
     @Column(name="user_id")
     private long userId;
-
-
-    /**
-     * Конструктор - создание нового объекта
-     * @param title краткое описание
-     * @param description полное описание
-     * @param dateTimeOfRemind дата и время отправки напоминания пользователю
-     * @param userId идентификатор пользователя
-     */
-    public Remind(String title, String description, LocalDateTime dateTimeOfRemind, long userId) {
-        this.title = title;
-        this.description = description;
-        this.dateTimeOfRemind = dateTimeOfRemind;
-        this.userId = userId;
-    }
 
 }
