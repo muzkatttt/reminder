@@ -15,7 +15,7 @@ import lombok.Data;
 
 @Entity
 @Data
-@Table(name="users")
+@Table(name="app_user")
 public class User {
 
     /**
@@ -38,17 +38,17 @@ public class User {
      * Поле адрес электронной почты пользователя
      */
     @Column(name="user_email")
-    private String userEmail;
+    private String email;
 
 
     /**
      * Конструктор - создание нового объекта
      * @param name имя пользователя
-     * @param userEmail электронный адрес пользователя
+     * @param email электронный адрес пользователя
      */
-    public User(String name, String userEmail) {
+    public User(String name, String email) {
         this.name = name;
-        this.userEmail = userEmail;
+        this.email = email;
     }
 
     public void setId(Long id) {
@@ -59,8 +59,8 @@ public class User {
         return name;
     }
 
-    public String getUserEmail() {
-        return userEmail;
+    public String getEmail() {
+        return email;
     }
 
 }

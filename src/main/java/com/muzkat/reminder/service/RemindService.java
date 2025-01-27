@@ -92,22 +92,12 @@ public class RemindService {
 
 
     /**
-     * Метод поиска напоминания по дате
-     * @param localDateTime
+     * Метод поиска напоминания по дате и времени
+     * @param dateTimeOfRemind
      * @return remind
      */
-    public Remind findRemindByDate(LocalDateTime localDateTime) {
-        return remindRepository.findByDate(localDateTime);
-    }
-
-
-    /**
-     * Метод поиска напоминания по времени
-     * @param localDateTime
-     * @return remind
-     */
-    public Remind findRemindByTime(LocalDateTime localDateTime) {
-        return remindRepository.findByTime(localDateTime);
+    public Remind findRemindByDateTime(LocalDateTime dateTimeOfRemind) {
+        return remindRepository.findByDateTimeOfRemind(dateTimeOfRemind);
     }
 
 

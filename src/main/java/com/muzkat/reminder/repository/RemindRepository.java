@@ -33,18 +33,10 @@ public interface RemindRepository extends JpaRepository<Remind, Long> {
 
 
     /**
-     * Поиск напоминания по дате
-     * @param localDateTime
+     * Поиск напоминания по дате и времени
+     * @param dateTimeOfRemind
      * @return remind
      */
-    Remind findByDate(LocalDateTime localDateTime);
-
-
-    /**
-     * Поиск напоминания по времени
-     * @param localDateTime
-     * @return remind
-     */
-    Remind findByTime(LocalDateTime localDateTime);
+    Remind findByDateTimeOfRemind(LocalDateTime dateTimeOfRemind);
 
 }

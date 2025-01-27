@@ -10,15 +10,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("user")
+@RequestMapping("api/user")
 @RequiredArgsConstructor
 public class UserController {
 
 
-    @GetMapping({"id"})
+    /**
+     * Поле экземпляр UserService
+     */
+    private UserService userservice;
+
+    @GetMapping("/{id}")
     public ResponseEntity<User> findById(@PathVariable long userId){
         return ResponseEntity.ok().body(userservice.findById(userId));
     }
 
-    private UserService userservice;
 }

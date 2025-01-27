@@ -23,8 +23,8 @@ public class UserService {
      * @return сохраненный объект пользователя
      */
     public User createUser(User user){
-        if (userRepository.existsByEmail(user.getUserEmail())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, NOT_FOUND_MESSAGE + user.getUserEmail());
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, NOT_FOUND_MESSAGE + user.getEmail());
         }
         user.setId(null);
         validateUser(user);
@@ -92,7 +92,7 @@ public class UserService {
      * @param user поьзователь, для которого осуществляется проверка
      */
     private void validateUser(User user) {
-        if (user.getUserEmail() == null || user.getUserEmail().isEmpty()) {
+        if (user.getEmail() == null || user.getEmail().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email должен быть указан!");
         }
         if(user.getName() == null || user.getName().isEmpty()){

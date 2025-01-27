@@ -12,29 +12,29 @@ import java.net.URI;
 import java.time.LocalDateTime;
 
 @RestController
-@RequestMapping("remind")
+@RequestMapping("api/remind")
 @RequiredArgsConstructor
 public class RemindController {
 
-    @GetMapping("{title}")
+    /**
+     * Поле экземпляр RemindService
+     */
+    private RemindService remindService;
+
+    @GetMapping("/by-title/{title}")
     public ResponseEntity<Remind> findByTitle(@PathVariable String title){
         return ResponseEntity.status(HttpStatus.OK).body(remindService.findRemindByTitle(title));
     }
 
-    @GetMapping("{description}")
+    @GetMapping("/{description}")
     public ResponseEntity<Remind> findByDescription(@PathVariable String description){
         return ResponseEntity.status(HttpStatus.OK).body(remindService.findRemindByDescription(description));
     }
 
 
-    @GetMapping("{date}")
-    public ResponseEntity<Remind> findByDate(@PathVariable LocalDateTime localDateTime){
-        return ResponseEntity.status(HttpStatus.OK).body(remindService.findRemindByDate(localDateTime));
-    }
-
-    @GetMapping("{time}")
-    public ResponseEntity<Remind> findByTime(@PathVariable LocalDateTime localDateTime){
-        return ResponseEntity.status(HttpStatus.OK).body(remindService.findRemindByTime(localDateTime));
+    @GetMapping("/by-date/{date}")
+    public ResponseEntity<Remind> findByDateTimeOfRemind(@PathVariable LocalDateTime dateTimeOfRemind){
+        return ResponseEntity.status(HttpStatus.OK).body(remindService.findRemindByDateTime(dateTimeOfRemind));
     }
 
     @PostMapping
@@ -48,24 +48,21 @@ public class RemindController {
         return ResponseEntity.created(location).body(createRemind);
     }
 
-    @DeleteMapping("{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Remind> deleteRemind(@PathVariable Long id){
         remindService.deleteRemind(id);
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("{title}")
+    @PutMapping("/{title}")
     public ResponseEntity<Remind> updateRemindByTitle(@PathVariable String title, @RequestBody Remind remind){
         return ResponseEntity.ok().body(remindService.updateRemindByTitle(title, remind));
     }
 
-    @PutMapping("{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<Remind> updateRemindById(@PathVariable Long id, @RequestBody Remind remind){
         return ResponseEntity.ok().body(remindService.updateRemindById(id, remind));
     }
 
-    /**
-     * Поле экземпляр RemindService
-     */
-    private RemindService remindService;
+
 }
