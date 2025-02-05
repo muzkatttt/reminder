@@ -1,5 +1,6 @@
 package com.muzkat.reminder.model;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.Id;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -7,6 +8,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import java.time.LocalDateTime;
 
 
@@ -18,6 +21,7 @@ import java.time.LocalDateTime;
 @Entity
 @Data
 @Table(name= "remind")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Remind {
 
     /**
@@ -32,22 +36,22 @@ public class Remind {
     /**
      * Поле краткое описание напоминания
      */
-    @Column(name="title")
+    @Column(name="title", nullable = false)
     private String title;
 
 
     /**
      * Поле полное описание напоминания
      */
-    @Column(name="description")
+    @Column(name="description", nullable = false)
     private String description;
 
 
     /**
      * Поле дата и время напоминания
      */
-    @Column(name="remind")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Column(name="remind", nullable = false)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime dateTimeOfRemind;
 
 
@@ -64,6 +68,7 @@ public class Remind {
      * @param dateTimeOfRemind дата и время отправки напоминания пользователю
      * @param userId идентификатор пользователя
      */
+    @Autowired
     public Remind(String title, String description, LocalDateTime dateTimeOfRemind, Long userId) {
         this.title = title;
         this.description = description;
