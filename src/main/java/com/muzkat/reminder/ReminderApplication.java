@@ -7,7 +7,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class ReminderApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ReminderApplication.class, args);
+		SpringApplication app = new SpringApplication(ReminderApplication.class);
+		app.setLogStartupInfo(true);
+		app.run(args);
 	}
 	
 }
