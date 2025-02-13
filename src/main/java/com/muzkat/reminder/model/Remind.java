@@ -76,6 +76,9 @@ public class Remind {
         this.userId = userId;
     }
 
+    public Remind() {
+    }
+
     public Long getRemindId() {
         return remindId;
     }

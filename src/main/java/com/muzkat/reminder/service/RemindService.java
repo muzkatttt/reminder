@@ -63,6 +63,9 @@ public class RemindService {
      * @param id - идентификатор напоминания
      */
     public void deleteRemind(Long id) {
+        if (!remindRepository.existsById(id)){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Напоминание с id " + id + " не найдено");
+        }
         remindRepository.deleteById(id);
     }
 
