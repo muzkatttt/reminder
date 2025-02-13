@@ -50,7 +50,7 @@ public class RemindController {
      * <p>
      *     Получение списка напоминаний по заголовку
      * </p>
-     * Проверить метод: GET http://localhost:8080/api/remind/by-title?title=first
+     * Проверить метод: GET <a href="http://localhost:8080/api/remind/by-title/first">...</a>
      * @param title заголовок напоминания
      * @return Список найденных напоминаний
      */
@@ -64,7 +64,7 @@ public class RemindController {
      * <p>
      *     Получение списка напоминаний по описанию
      * </p>
-     * Проверить метод: GET <a href="http://localhost:8080/api/remind/by-description?first-description">...</a>
+     * Проверить метод: GET <a href="http://localhost:8080/api/remind/by-description/five description">...</a>
      * @param description описание напоминания
      * @return Список найденных напоминаний
      */
@@ -79,27 +79,28 @@ public class RemindController {
      * <p>
      *     Получение списка напоминаний по дате
      * </p>
-     * Проверить метод в Postman: GET <a href="http://localhost:8080/api/remind/by-date?date=2025-02-02">...</a>
+     * Проверить метод в Postman: GET <a href="http://localhost:8080/api/remind/by-date?dateTimeOfRemind=2025-02-02">...</a>
      * @param dateTimeOfRemind дата напоминания в формате ISO
      * @return Cписок найденных напоминаний
      */
-    @GetMapping("/by-date/{date}")
-    public ResponseEntity<List<Remind>> findByDate(@RequestParam @DateTimeFormat(iso=DateTimeFormat.ISO.DATE)LocalDate dateTimeOfRemind){
-        return ResponseEntity.status(HttpStatus.OK).body(remindService.findRemindByDate(dateTimeOfRemind));
+    @GetMapping("/by-date")
+    public ResponseEntity<List<Remind>> findByDate(@RequestParam(name = "dateTimeOfRemind") @DateTimeFormat(iso=DateTimeFormat.ISO.DATE)LocalDate dateTimeOfRemind){
+        return ResponseEntity.ok(remindService.findRemindByDate(dateTimeOfRemind));
     }
-
 
     /**<p>
      *     Получение списка напоминаний по времени
      * </p>
-     * Проверить метод в Postman: GET <a href="http://localhost:8080/api/remind/by-time?time=00:00:00">...</a>
+     * Проверить метод в Postman: GET <a href="http://localhost:8080/api/remind/by-time?dateTimeOfRemind=00:00:00">...</a>
      * @param dateTimeOfRemind время напоминания в формате ISO
      * @return Cписок найденных напоминаний
      */
-    @GetMapping("/by-time/{time}")
-    public ResponseEntity<List<Remind>> findByTime(@RequestParam @DateTimeFormat(iso=DateTimeFormat.ISO.TIME) LocalTime dateTimeOfRemind){
-        return ResponseEntity.status(HttpStatus.OK).body(remindService.findRemindByTime(dateTimeOfRemind));
+    @GetMapping("/by-time")
+    public ResponseEntity<List<Remind>> findByTime(@RequestParam(name = "dateTimeOfRemind") @DateTimeFormat(iso=DateTimeFormat.ISO.TIME) LocalTime dateTimeOfRemind){
+        return ResponseEntity.ok(remindService.findRemindByTime(dateTimeOfRemind));
     }
+
+
 
     /**
      * <p>
@@ -128,11 +129,10 @@ public class RemindController {
      * @return Cтатус успешного удаления
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Remind> deleteRemind(@PathVariable Long id){
+    public ResponseEntity<Void> deleteRemind(@PathVariable Long id){
         remindService.deleteRemind(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
-
 
     /**
      * <p>
@@ -149,14 +149,15 @@ public class RemindController {
 
     /**
      * <p>
-     *     Удаление напоминания по идентификатору
+     *     Обновление напоминания по идентификатору
      * </p>
      * @param id идентификатор напоминания
-     * @return Cтатус, если удаление завершено успешно
+     * @return Cтатус, если обновление завершено успешно
      */
     @PutMapping("/by-id/{id}")
     public ResponseEntity<Remind> updateRemindById(@PathVariable Long id, @RequestBody Remind remind){
         return ResponseEntity.ok().body(remindService.updateRemindById(id, remind));
     }
+
 
 }
