@@ -2,6 +2,7 @@ package com.muzkat.reminder.controllers;
 
 import com.muzkat.reminder.model.Remind;
 import com.muzkat.reminder.service.RemindService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -55,7 +56,7 @@ public class RemindController {
      * @return Список найденных напоминаний
      */
     @GetMapping("/by-title/{title}")
-    public ResponseEntity<List<Remind>> findByTitle(@PathVariable String title){
+    public ResponseEntity<List<Remind>> findByTitle(@PathVariable String title) {
         return ResponseEntity.status(HttpStatus.OK).body(remindService.findRemindByTitle(title));
     }
 
@@ -70,7 +71,7 @@ public class RemindController {
      */
 
     @GetMapping("/by-description/{description}")
-    public ResponseEntity<List<Remind>> findByDescription(@PathVariable String description){
+    public ResponseEntity<List<Remind>> findByDescription(@PathVariable String description) {
         return ResponseEntity.status(HttpStatus.OK).body(remindService.findRemindByDescription(description));
     }
 
@@ -84,7 +85,7 @@ public class RemindController {
      * @return Cписок найденных напоминаний
      */
     @GetMapping("/by-date")
-    public ResponseEntity<List<Remind>> findByDate(@RequestParam(name = "dateTimeOfRemind") @DateTimeFormat(iso=DateTimeFormat.ISO.DATE)LocalDate dateTimeOfRemind){
+    public ResponseEntity<List<Remind>> findByDate(@RequestParam(name = "dateTimeOfRemind") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTimeOfRemind) {
         return ResponseEntity.ok(remindService.findRemindByDate(dateTimeOfRemind));
     }
 
@@ -96,21 +97,21 @@ public class RemindController {
      * @return Cписок найденных напоминаний
      */
     @GetMapping("/by-time")
-    public ResponseEntity<List<Remind>> findByTime(@RequestParam(name = "dateTimeOfRemind") @DateTimeFormat(iso=DateTimeFormat.ISO.TIME) LocalTime dateTimeOfRemind){
+    public ResponseEntity<List<Remind>> findByTime(@RequestParam(name = "dateTimeOfRemind") @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime dateTimeOfRemind) {
         return ResponseEntity.ok(remindService.findRemindByTime(dateTimeOfRemind));
     }
-
 
 
     /**
      * <p>
      *     Создание нового напоминания
      * </p>
+     * Проверить метод в Postman: POST http://localhost:8080/api/remind
      * @param remind объект напоминания
      * @return Cозданное напоминание с URI
      */
     @PostMapping
-    public ResponseEntity<Remind> createRemind(@RequestBody Remind remind){
+    public ResponseEntity<Remind> createRemind(@RequestBody Remind remind) {
         Remind createRemind = remindService.createRemind(remind);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -126,38 +127,40 @@ public class RemindController {
      *     Удаление напоминания по идентификатору
      * </p>
      * @param id идентификатор напоминания
-     * @return Cтатус успешного удаления
+     * @return Cтатус, если напоминание успешно удалено
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRemind(@PathVariable Long id){
+    public ResponseEntity<Void> deleteRemind(@PathVariable Long id) {
         remindService.deleteRemind(id);
         return ResponseEntity.noContent().build();
     }
+
 
     /**
      * <p>
      *     Обновление напоминания по краткому описанию
      * </p>
+     * Проверить метод в Postman: PUT <a href="http://localhost:8080/api/remind/by-title/five">...</a>
      * @param title заголовок напоминания
      * @param remind обновлённый объект напоминания
-     * @return Обновлённое напоминание
+     * @return Cтатус, если обновление завершено успешно
      */
     @PutMapping("/by-title/{title}")
-    public ResponseEntity<Remind> updateRemindByTitle(@PathVariable String title, @RequestBody Remind remind){
-        return ResponseEntity.ok().body(remindService.updateRemindByTitle(title, remind));
+    public ResponseEntity<Remind> updateRemindByTitle(@PathVariable String title, @Valid @RequestBody Remind remind) {
+        return ResponseEntity.ok(remindService.updateRemindByTitle(title, remind));
     }
+
 
     /**
      * <p>
      *     Обновление напоминания по идентификатору
      * </p>
+     * Проверить метод в Postman: PUT <a href="http://localhost:8080/api/remind/by-id/31">...</a>
      * @param id идентификатор напоминания
      * @return Cтатус, если обновление завершено успешно
      */
     @PutMapping("/by-id/{id}")
-    public ResponseEntity<Remind> updateRemindById(@PathVariable Long id, @RequestBody Remind remind){
+    public ResponseEntity<Remind> updateRemindById(@PathVariable Long id, @Valid @RequestBody Remind remind) {
         return ResponseEntity.ok().body(remindService.updateRemindById(id, remind));
     }
-
-
 }

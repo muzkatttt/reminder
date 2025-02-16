@@ -7,7 +7,9 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
@@ -21,6 +23,8 @@ import java.time.LocalDateTime;
 @Entity
 @Data
 @Table(name= "remind")
+@NoArgsConstructor
+@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Remind {
 
@@ -75,20 +79,4 @@ public class Remind {
         this.dateTimeOfRemind = dateTimeOfRemind;
         this.userId = userId;
     }
-
-    public Remind() {
-    }
-
-    public Long getRemindId() {
-        return remindId;
-    }
-
-    public void setRemindId(Long remindId) {
-        this.remindId = remindId;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
 }
