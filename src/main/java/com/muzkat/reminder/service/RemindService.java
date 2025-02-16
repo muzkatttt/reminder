@@ -2,11 +2,9 @@ package com.muzkat.reminder.service;
 
 import com.muzkat.reminder.model.Remind;
 import com.muzkat.reminder.repository.RemindRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -26,16 +24,6 @@ public class RemindService {
      * Поле экземпляр {@link RemindRepository}
      */
     private final RemindRepository remindRepository;
-
-
-    /** Поле сообщение, если по краткому описанию напоминание не найдено */
-    private static final String TITLE_NOT_FOUND_MESSAGE = "Не найдено напоминание с title: ";
-
-
-    /**
-     * Поле сообщение, если по полному описанию напоминание не найдено
-     */
-    private static final String DESCRIPTION_NOT_FOUND_MESSAGE = "Не найдено напоминание по полному описанию: ";
 
 
     /**
@@ -64,7 +52,7 @@ public class RemindService {
      */
     public void deleteRemind(Long id) {
         if (!remindRepository.existsById(id)){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Напоминание с id " + id + " не найдено");
+            throw new EntityNotFoundException("Напоминание с id " + id + " не найдено");
         }
         remindRepository.deleteById(id);
     }
@@ -77,8 +65,17 @@ public class RemindService {
      * @return Обновленное напоминание
      */
     public Remind updateRemindByTitle(String title, Remind remind) {
-        remind.setTitle(title);
-        return remindRepository.save(remind);
+        Remind existRemind = remindRepository.findByTitle(title).getFirst();
+        if(remind.getTitle() != null){
+            existRemind.setTitle(remind.getTitle());
+        }
+        if(remind.getDescription() !=null){
+            existRemind.setDescription(remind.getDescription());
+        }
+        if(remind.getDateTimeOfRemind() != null){
+            existRemind.setDateTimeOfRemind(remind.getDateTimeOfRemind());
+        }
+        return remindRepository.save(existRemind);
     }
 
     /**
@@ -88,9 +85,20 @@ public class RemindService {
      * @return Найденное напоминание
      */
     public Remind updateRemindById(Long id, Remind remind) {
-        remind.setRemindId(id);
-        return remindRepository.save(remind);
+        Remind existRemind = remindRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Напоминание с id " + id + " не найдено"));
+        if(remind.getTitle() != null){
+            existRemind.setTitle(remind.getTitle());
+        }
+        if(remind.getDescription() !=null){
+            existRemind.setDescription(remind.getDescription());
+        }
+        if(remind.getDateTimeOfRemind() != null){
+            existRemind.setDateTimeOfRemind(remind.getDateTimeOfRemind());
+        }
+        return remindRepository.save(existRemind);
     }
+
 
     /**
      * Метод поиска напоминания по краткому описанию
@@ -100,7 +108,7 @@ public class RemindService {
     public List<Remind> findRemindByTitle(String title) {
         List<Remind> remind = remindRepository.findByTitle(title);
         if (remind == null) {
-            throwNotFoundExceptionByTitle(title);
+            throw new EntityNotFoundException("Напоминание по краткому описанию " + title + " не найдено");
         }
         return remind;
     }
@@ -114,7 +122,7 @@ public class RemindService {
     public List<Remind> findRemindByDescription(String description) {
         List<Remind> remind = remindRepository.findByDescription(description);
         if (remind == null) {
-            throwNotFoundExceptionByDescription(description);
+            throw new EntityNotFoundException("Напоминание по полному описанию " + description + " не найдено");
         }
         return remind;
     }
@@ -140,23 +148,4 @@ public class RemindService {
     public List<Remind> findRemindByTime(LocalTime dateTimeOfRemind){
         return remindRepository.findByDateTimeOfRemind(dateTimeOfRemind);
     }
-
-
-    /**
-     * Исключение, если по краткому описанию напоминание не найдено
-     * @param title
-     */
-    private void throwNotFoundExceptionByTitle(String title) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, TITLE_NOT_FOUND_MESSAGE + title);
-    }
-
-
-    /**
-     * Исключение, если по полному описанию напоминание не найдено
-     * @param description
-     */
-    private void throwNotFoundExceptionByDescription(String description) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, DESCRIPTION_NOT_FOUND_MESSAGE + description);
-    }
-
 }
