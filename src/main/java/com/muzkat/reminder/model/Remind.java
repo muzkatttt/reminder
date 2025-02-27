@@ -55,7 +55,7 @@ public class Remind {
      * Поле дата и время напоминания
      */
     @Column(name="remind", nullable = false)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime dateTimeOfRemind;
 
 
@@ -64,6 +64,7 @@ public class Remind {
      */
     @Column(name="user_id")
     private Long userId;
+
 
     /**
      * Конструктор - создание нового объекта
@@ -78,5 +79,18 @@ public class Remind {
         this.description = description;
         this.dateTimeOfRemind = dateTimeOfRemind;
         this.userId = userId;
+    }
+
+
+    /**
+     * Конструктор - создание нового объекта
+     * @param title Краткое описание
+     * @param description Полное описание
+     * @param dateTimeOfRemind Дата и время отправки напоминания пользователю
+     */
+    public Remind(String title, String description, LocalDateTime dateTimeOfRemind) {
+        this.title = title;
+        this.description = description;
+        this.dateTimeOfRemind = dateTimeOfRemind;
     }
 }
