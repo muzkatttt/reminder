@@ -51,43 +51,35 @@ public class RemindController {
 
 
     /**
-     * <p>
-     *     Получение списка напоминаний по описанию
-     * </p>
-     * Проверить метод: GET <a href="http://localhost:8080/api/remind/by-description/five description">...</a>
+     * Получение списка напоминаний по описанию
      * @param description описание напоминания
      * @return Список найденных напоминаний
      */
     @GetMapping("/by-description/{description}")
-    public ResponseEntity<List<Remind>> findByDescription(@PathVariable String description) {
+    public ResponseEntity<RemindDTO> findByDescription(@PathVariable String description) {
         return ResponseEntity.status(HttpStatus.OK).body(remindService.findRemindByDescription(description));
     }
 
 
     /**
-     * <p>
-     *     Создание нового напоминания
-     * </p>
-     * Проверить метод в Postman: POST http://localhost:8080/api/remind
-     * @param remind объект напоминания
+     * Создание нового напоминания
+     * @param remindDTO объект напоминания
      * @return Cозданное напоминание с URI
      */
-    @PostMapping()
-    public ResponseEntity<Remind> createRemind(@RequestBody Remind remind) {
-        Remind createRemind = remindService.createRemind(remind);
+    @PostMapping("/create")
+    public ResponseEntity<RemindDTO> createRemind(@RequestBody RemindDTO remindDTO) {
+        Remind createdRemind = remindService.createRemind(RemindDTO.fromEntity(remindDTO.toEntity())).toEntity();
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
-                .buildAndExpand(createRemind.getRemindId())
+                .buildAndExpand(createdRemind.getRemindId())
                 .toUri();
-        return ResponseEntity.created(location).body(createRemind);
+        return ResponseEntity.created(location).body(RemindDTO.fromEntity(createdRemind));
     }
 
 
     /**
-     * <p>
-     *     Удаление напоминания по идентификатору
-     * </p>
+     * Удаление напоминания по идентификатору
      * @param id идентификатор напоминания
      * @return Cтатус, если напоминание успешно удалено
      */
@@ -99,38 +91,31 @@ public class RemindController {
 
 
     /**
-     * <p>
-     *     Обновление напоминания по краткому описанию
-     * </p>
-     * Проверить метод в Postman: PUT <a href="http://localhost:8080/api/remind/by-title/five">...</a>
+     * Обновление напоминания по краткому описанию
      * @param title заголовок напоминания
      * @param remind обновлённый объект напоминания
      * @return Cтатус, если обновление завершено успешно
      */
     @PutMapping("/by-title/{title}")
-    public ResponseEntity<Remind> updateRemindByTitle(@PathVariable String title, @Valid @RequestBody Remind remind) {
+    public ResponseEntity<RemindDTO> updateRemindByTitle(@PathVariable String title, @Valid @RequestBody RemindDTO remind) {
         return ResponseEntity.ok(remindService.updateRemindByTitle(title, remind));
     }
 
 
     /**
-     * <p>
-     *     Обновление напоминания по идентификатору
-     * </p>
-     * Проверить метод в Postman: PUT <a href="http://localhost:8080/api/remind/by-id/31">...</a>
+     * Обновление напоминания по идентификатору
      * @param id идентификатор напоминания
      * @return Cтатус, если обновление завершено успешно
      */
     @PutMapping("/by-id/{id}")
-    public ResponseEntity<Remind> updateRemindById(@PathVariable Long id, @Valid @RequestBody Remind remind) {
-        return ResponseEntity.ok().body(remindService.updateRemindById(id, remind));
+    public ResponseEntity<RemindDTO> updateRemindById(@PathVariable Long id, @Valid @RequestBody RemindDTO remindDTO) {
+        Remind updatedRemind = remindService.updateRemindById(id, remindDTO.toEntity());
+        return ResponseEntity.ok(RemindDTO.fromEntity(updatedRemind));
     }
 
 
-    /** <p>
-     *      Получение списка со всеми напоминаниями
-     * </p>
-     * Проверить метод в Postman: GET <a href="http://localhost:8080/api/remind/all">...</a>
+    /**
+     * Получение списка со всеми напоминаниями
      * @return Статус в случае удачного получения списка напоминаний
      * */
     @GetMapping("/all")
@@ -139,13 +124,8 @@ public class RemindController {
     }
 
 
-    /** <p>
-     *      Фильтрация напоминаний
-     * </p>
-     * Проверить метод в Postman по краткому описанию:
-     * GET <a href="http://localhost:8080/api/remind/filter?title=second">...</a>
-     * по дате: GET <a href="http://localhost:8080/api/remind/filter?date=2025-02-02">...</a>
-     * по времени: GET <a href="http://localhost:8080/api/remind/filter?time=20:00:00">...</a>
+    /**
+     * Фильтрация напоминаний по краткому описанию, дате или времени
      */
     @GetMapping("/filter")
     public ResponseEntity<List<RemindDTO>> filterReminds(
@@ -156,10 +136,8 @@ public class RemindController {
     }
 
 
-    /** Сортировка напоминаний
-     * Проверить метод в Postman по краткому описанию: <a href="http://localhost:8080/api/remind/sorted?sortBy=title">...</a>
-     * по дате: <a href="http://localhost:8080/api/remind/sorted?sortBy=date">...</a>
-     * по времени: <a href="http://localhost:8080/api/remind/sorted?sortBy=time">...</a>
+    /**
+     * Сортировка напоминаний по краткому описанию, дате или времени
      */
     @GetMapping("/sorted")
     public ResponseEntity<List<RemindDTO>> getSortedReminds(@RequestParam String sortBy) {

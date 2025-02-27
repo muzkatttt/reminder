@@ -1,9 +1,11 @@
 package com.muzkat.reminder.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.muzkat.reminder.model.Remind;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Comparator;
 
@@ -18,6 +20,11 @@ import java.util.Comparator;
 @Data
 @NoArgsConstructor
 public class RemindDTO {
+
+    /**
+     * Поле уникальный идентификатор напоминания
+     */
+    private Long id;
 
     /**
      * Поле краткое описание напоминания
@@ -46,17 +53,26 @@ public class RemindDTO {
 
 
     /**
+     * Поле идентификатор пользователя
+     */
+    private Long userId;
+
+
+    /**
      * Конструктор - создание нового объекта {@link RemindDTO}
+     * @param id идентификатор напоминания
      * @param title Краткое описание
      * @param description Полное описание
      * @param dateOfRemind Дата отправки напоминания пользователю
      * @param timeOfRemind Время отправки напоминания пользователю
      */
-    public RemindDTO(String title, String description, LocalDate dateOfRemind, LocalTime timeOfRemind) {
+    public RemindDTO(Long id, String title, String description, LocalDate dateOfRemind, LocalTime timeOfRemind, Long userId) {
+        this.id = id;
         this.title = title;
         this.description = description;
         this.dateOfRemind = dateOfRemind;
         this.timeOfRemind = timeOfRemind;
+        this.userId = userId;
     }
 
 
@@ -98,5 +114,55 @@ public class RemindDTO {
             return false;
         }
         return true;
+    }
+
+
+    /**
+     * Метод преобразует {@link RemindDTO} в {@link Remind}
+     * <p>
+     *      Метод используется для преобразования DTO в основную сущность перед сохранением в базу данных
+     * </p>
+     * @return Напоминание {@link Remind} с установленными значениями
+     */
+    public Remind toEntity() {
+        Remind remind = new Remind();
+        remind.setTitle(this.title);
+        remind.setDescription(this.description);
+        remind.setDateTimeOfRemind(this.toLocalDateTime());
+        remind.setUserId(this.userId);
+        return remind;
+    }
+
+
+    /**
+     * Метод преобразует dateOfRemind и timeOfRemind в {@link LocalDateTime}
+     * @return Дату и время в формате {@link LocalDateTime}
+     * @throws IllegalStateException если дата или время равны null
+     */
+    public LocalDateTime toLocalDateTime() {
+        if (dateOfRemind == null || timeOfRemind == null) {
+            throw new IllegalStateException("Дата и время напоминания не могут быть пустыми!");
+        }
+        return dateOfRemind.atTime(timeOfRemind);
+    }
+
+
+    /**
+     * Метод преобразует сущность {@link Remind} в {@link RemindDTO}
+     * @param remind Сущность напоминания
+     * @return Объект `RemindDTO` с раздельными полями даты и времени
+     */
+    public static RemindDTO fromEntity(Remind remind) {
+        if (remind == null) {
+            return null;
+        }
+        return new RemindDTO(
+                remind.getRemindId(),
+                remind.getTitle(),
+                remind.getDescription(),
+                remind.getDateTimeOfRemind().toLocalDate(),
+                remind.getDateTimeOfRemind().toLocalTime(),
+                remind.getUserId()
+        );
     }
 }

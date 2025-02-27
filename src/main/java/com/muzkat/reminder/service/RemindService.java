@@ -41,11 +41,17 @@ public class RemindService {
 
     /**
      * Метод для создания напоминания
-     * @param remind напоминание
+     * <p>
+     *     Метод преобразует DTO в сущность {@link Remind},
+     *     сохраняет его в базе данных и возвращает новое напоминание
+     * </p>
+     * @param remindDTO напоминание
      * @return новое напоминание
      */
-    public Remind createRemind(Remind remind) {
-        return remindRepository.save(remind);
+    public RemindDTO createRemind(RemindDTO remindDTO) {
+        Remind remind = remindDTO.toEntity();
+        Remind savedRemind = remindRepository.save(remind);
+        return RemindDTO.fromEntity(savedRemind);
     }
 
 
@@ -63,34 +69,53 @@ public class RemindService {
 
     /**
      * Метод обновления напоминания по краткому описанию
+     * <p>
+     *     Метод ищет в базе данных напоминание по краткому описанию,
+     *     проверяет, не являются ли поля {@link Remind} null: краткое описание,
+     *     полное описание, дату и время напоминания. И если проверка пройдена, то обновляет напоминание
+     * </p>
      * @param title Краткое описание напоминания
-     * @param remind Напоминание
+     * @param remindDTO Напоминание
      * @return Обновленное напоминание
      */
-    public Remind updateRemindByTitle(String title, Remind remind) {
-        Remind existRemind = remindRepository.findByTitle(title).getFirst();
-        if (remind.getTitle() != null) {
-            existRemind.setTitle(remind.getTitle());
+    public RemindDTO updateRemindByTitle(String title, RemindDTO remindDTO) {
+        Remind existRemind = remindRepository.findByTitle(title)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException(
+                        String.format("Напоминание с заголовком %s не найдено!",title)));
+
+        if (remindDTO.getTitle() != null) {
+            existRemind.setTitle(remindDTO.getTitle());
         }
-        if (remind.getDescription() != null) {
-            existRemind.setDescription(remind.getDescription());
+        if (remindDTO.getDescription() != null) {
+            existRemind.setDescription(remindDTO.getDescription());
         }
-        if (remind.getDateTimeOfRemind() != null) {
-            existRemind.setDateTimeOfRemind(remind.getDateTimeOfRemind());
+        if (remindDTO.getDateOfRemind() != null && remindDTO.getTimeOfRemind() != null) {
+            existRemind.setDateTimeOfRemind(remindDTO.toLocalDateTime());
         }
-        return remindRepository.save(existRemind);
+
+        Remind savedRemind = remindRepository.save(existRemind);
+
+        return RemindDTO.fromEntity(savedRemind);
     }
 
 
     /**
      * Метод обновления напоминания по идентификатору
+     * <p>
+     *     Метод ищет в базе данных напоминание по идентификатору,
+     *     проверяет, не являются ли поля {@link Remind} null: краткое описание,
+     *     полное описание, дату и время напоминания. И если проверка пройдена, то обновляет напоминание
+     *      * </p>
      * @param id Идентификатор напоминания
      * @param remind Напоминание
      * @return Найденное напоминание
      */
     public Remind updateRemindById(Long id, Remind remind) {
         Remind existRemind = remindRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(String.format("Напоминание с id %d не найдено!", id)));
+                .orElseThrow(() -> new EntityNotFoundException(
+                        String.format("Напоминание с id %d не найдено!", id)));
         if (remind.getTitle() != null) {
             existRemind.setTitle(remind.getTitle());
         }
@@ -109,12 +134,15 @@ public class RemindService {
      * @param description Полное описание напоминания
      * @return Напоминание
      */
-    public List<Remind> findRemindByDescription(String description) {
-        List<Remind> remind = remindRepository.findByDescription(description);
-        if (remind == null) {
-            throw new EntityNotFoundException(String.format("Напоминание по краткому описанию %s не найдено!", description));
-        }
-        return remind;
+    public RemindDTO findRemindByDescription(String description) {
+    Remind remind = remindRepository.findByDescription(description)
+            .stream()
+            .findFirst()
+            .orElseThrow(() -> new EntityNotFoundException(
+                    String.format("Напоминание с описанием '%s' не найдено!", description)
+            ));
+
+    return RemindDTO.fromEntity(remind);
     }
 
 
@@ -125,10 +153,12 @@ public class RemindService {
      */
     private RemindDTO convertToDTO(Remind remind) {
         return new RemindDTO(
+                remind.getRemindId(),
                 remind.getTitle(),
                 remind.getDescription(),
                 remind.getDateTimeOfRemind().toLocalDate(),
-                remind.getDateTimeOfRemind().toLocalTime()
+                remind.getDateTimeOfRemind().toLocalTime(),
+                remind.getUserId()
         );
     }
 
