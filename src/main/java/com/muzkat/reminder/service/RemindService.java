@@ -1,6 +1,7 @@
 package com.muzkat.reminder.service;
 
 import com.muzkat.reminder.dto.RemindDTO;
+import com.muzkat.reminder.mapper.RemindMapper;
 import com.muzkat.reminder.model.Remind;
 import com.muzkat.reminder.repository.RemindRepository;
 import com.muzkat.reminder.utils.RemindDtoUtils;
@@ -12,6 +13,10 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+
+import static com.muzkat.reminder.utils.RemindDtoUtils.getComparator;
+import static com.muzkat.reminder.utils.RemindDtoUtils.matchesFilters;
 
 /**
  * Сервис для управления напоминаниями.
@@ -34,6 +39,12 @@ public class RemindService {
 
 
     /**
+     * Поле экземпляр {@link RemindMapper}
+     */
+    private final RemindMapper remindMapper;
+
+
+    /**
      * Метод для создания напоминания
      * <p>
      *     Метод преобразует DTO в сущность {@link Remind},
@@ -43,9 +54,9 @@ public class RemindService {
      * @return новое напоминание в виде {@link RemindDTO}
      */
     public RemindDTO createRemind(RemindDTO remindDTO) {
-        Remind remind = RemindDtoUtils.toEntity(remindDTO);
+        Remind remind = remindMapper.toEntity(remindDTO);
         Remind savedRemind = remindRepository.save(remind);
-        return RemindDtoUtils.fromEntity(savedRemind);
+        return remindMapper.toDto(savedRemind);
     }
 
 
@@ -69,7 +80,7 @@ public class RemindService {
      * @return {@link Optional} с {@link RemindDTO}, если найдено
      */
     public Optional<RemindDTO> findRemindById(Long id) {
-        return remindRepository.findById(id).map(RemindDtoUtils::fromEntity);
+        return remindRepository.findById(id).map(remindMapper::toDto);
     }
 
 
@@ -79,8 +90,10 @@ public class RemindService {
      * @return {@link Optional} с {@link RemindDTO}, если найдено
      */
     public Optional<RemindDTO> findRemindByTitle(String title) {
-        Optional<Remind> remind = remindRepository.findByTitle(title).stream().findFirst();
-        return RemindDtoUtils.fromOptionalEntity(remind);
+        return remindRepository.findByTitle(title)
+                .stream()
+                .findFirst()
+                .map(remindMapper::toDto);
     }
 
 
@@ -112,12 +125,12 @@ public class RemindService {
             existRemind.setDescription(remindDTO.getDescription());
         }
         if (remindDTO.getDateOfRemind() != null && remindDTO.getTimeOfRemind() != null) {
-            existRemind.setDateTimeOfRemind(RemindDtoUtils.toLocalDateTime(remindDTO));
+            existRemind.setDateTimeOfRemind(remindDTO.getDateOfRemind().atTime(remindDTO.getTimeOfRemind()));
         }
 
         Remind savedRemind = remindRepository.save(existRemind);
 
-        return Optional.of(RemindDtoUtils.fromEntity(savedRemind));
+        return Optional.of(remindMapper.toDto(savedRemind));
     }
 
 
@@ -127,7 +140,7 @@ public class RemindService {
      *     Метод ищет в базе данных напоминание по идентификатору,
      *     проверяет, не являются ли поля {@link Remind} null: краткое описание,
      *     полное описание, дату и время напоминания. И если проверка пройдена, то обновляет напоминание
-     *      * </p>
+     * </p>
      * @param id Идентификатор существующего напоминания
      * @param remindDTO DTO с новыми данными
      * @return {@link Optional} с обновлённым {@link RemindDTO}, если найдено
@@ -146,10 +159,14 @@ public class RemindService {
             existRemind.setDescription(remindDTO.getDescription());
         }
         if (remindDTO.getDateOfRemind() != null && remindDTO.getTimeOfRemind() != null) {
-            existRemind.setDateTimeOfRemind(RemindDtoUtils.toLocalDateTime(remindDTO));
-        }
+        LocalDate date = remindDTO.getDateOfRemind();
+        LocalTime time = remindDTO.getTimeOfRemind();
+        existRemind.setDateTimeOfRemind(date.atTime(time));
+    }
+
         Remind updateRemind = remindRepository.save(existRemind);
-        return Optional.of(RemindDtoUtils.fromEntity(updateRemind));
+        RemindDTO resultDto = remindMapper.toDto(updateRemind);
+        return Optional.of(resultDto);
     }
 
 
@@ -162,17 +179,7 @@ public class RemindService {
         return remindRepository.findByDescription(description)
                 .stream()
                 .findFirst()
-                .map(RemindDtoUtils::fromEntity);
-    }
-
-
-    /**
-     * Метод преобразования класса {@link Remind} в {@link RemindDTO}
-     * @param remind напоминание
-     * @return напоминание, преобразованное в {@link RemindDTO}
-     */
-    private RemindDTO convertToDTO(Remind remind) {
-        return RemindDtoUtils.fromEntity(remind);
+                .map(remindMapper::toDto);
     }
 
 
@@ -182,7 +189,7 @@ public class RemindService {
      */
     public List<RemindDTO> getAllReminds() {
         return remindRepository.findAll().stream()
-                .map(this::convertToDTO)
+                .map(remindMapper::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -197,8 +204,8 @@ public class RemindService {
      */
     public List<RemindDTO> filterReminds(String titleFilter, LocalDate dateFilter, LocalTime timeFilter) {
         return remindRepository.findAll().stream()
-                .map(RemindDtoUtils::fromEntity)
-                .filter(dto -> RemindDtoUtils.matchesFilters(dto, titleFilter, dateFilter, timeFilter))
+                .map(remindMapper::toDto)
+                .filter(dto -> matchesFilters(dto, titleFilter, dateFilter, timeFilter))
                 .collect(Collectors.toList());
     }
 
@@ -217,8 +224,7 @@ public class RemindService {
      */
     public List<RemindDTO> getSortedReminds(String sortBy) {
         return getAllReminds().stream()
-                .sorted(RemindDtoUtils.getComparator(sortBy))
+                .sorted(getComparator(sortBy))
                 .collect(Collectors.toList());
     }
 }
-
