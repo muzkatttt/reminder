@@ -4,6 +4,7 @@ import com.muzkat.reminder.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+
 /**
  * Репозиторий для работы с сущностями типа User.
  * Данное расширение {@link UserRepository} позволяет выполнять
@@ -13,19 +14,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    /**
-     * Поиск пользователя по его имени
-     * @param name
-     * @return user
-     */
-    User findByName(String name);
-
-    /**
-     * Поиск пользователя по email-адресу
-     * @param email
-     * @return user
-     */
-    User findByEmail(String email);
 
     /**
      * Метод проверяет, существует ли пользователь с таким же email перед созданием нового пользователя

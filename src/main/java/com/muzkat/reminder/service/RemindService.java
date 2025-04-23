@@ -1,16 +1,22 @@
 package com.muzkat.reminder.service;
 
 import com.muzkat.reminder.dto.RemindDTO;
+import com.muzkat.reminder.mapper.RemindMapper;
 import com.muzkat.reminder.model.Remind;
 import com.muzkat.reminder.repository.RemindRepository;
-import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.muzkat.reminder.utils.RemindDtoUtils;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+
+import static com.muzkat.reminder.utils.RemindDtoUtils.getComparator;
+import static com.muzkat.reminder.utils.RemindDtoUtils.matchesFilters;
 
 /**
  * Сервис для управления напоминаниями.
@@ -18,9 +24,12 @@ import java.util.stream.Collectors;
  *     Класс содержит методы для создания, обновления, удаления,
  * поиска по краткому и полному описанию напоминания,
  * по дате и времени напоминания.
+ * Исключения не выбрасываются напрямую — используется Optional и boolean,
+ * обработка ошибок происходит на уровне контроллера.
  * </p>
  */
 @Service
+@AllArgsConstructor
 public class RemindService {
 
     /**
@@ -30,13 +39,9 @@ public class RemindService {
 
 
     /**
-     * Конструктор - создание нового объекта
-     * @param remindRepository экземпляр класса RemindService
+     * Поле экземпляр {@link RemindMapper}
      */
-    @Autowired
-    public RemindService(RemindRepository remindRepository) {
-        this.remindRepository = remindRepository;
-    }
+    private final RemindMapper remindMapper;
 
 
     /**
@@ -46,24 +51,49 @@ public class RemindService {
      *     сохраняет его в базе данных и возвращает новое напоминание
      * </p>
      * @param remindDTO напоминание
-     * @return новое напоминание
+     * @return новое напоминание в виде {@link RemindDTO}
      */
     public RemindDTO createRemind(RemindDTO remindDTO) {
-        Remind remind = remindDTO.toEntity();
+        Remind remind = remindMapper.toEntity(remindDTO);
         Remind savedRemind = remindRepository.save(remind);
-        return RemindDTO.fromEntity(savedRemind);
+        return remindMapper.toDto(savedRemind);
     }
 
 
     /**
      * Метод удаления напоминания по id напоминания
      * @param id - идентификатор напоминания
+     * @return true, если удаление прошло успешно; false, если напоминание не найдено
      */
-    public void deleteRemind(Long id) {
+    public boolean deleteRemind(Long id) {
         if (!remindRepository.existsById(id)) {
-            throw new EntityNotFoundException(String.format("Напоминание с id %d не найдено!", id));
+            return false;
         }
         remindRepository.deleteById(id);
+        return true;
+    }
+
+
+    /**
+     * Метод поиска напоминания по идентификатору
+     * @param id идентификатор напоминания
+     * @return {@link Optional} с {@link RemindDTO}, если найдено
+     */
+    public Optional<RemindDTO> findRemindById(Long id) {
+        return remindRepository.findById(id).map(remindMapper::toDto);
+    }
+
+
+    /**
+     * Метод поиска напоминания по заголовку.
+     * @param title заголовок напоминания
+     * @return {@link Optional} с {@link RemindDTO}, если найдено
+     */
+    public Optional<RemindDTO> findRemindByTitle(String title) {
+        return remindRepository.findByTitle(title)
+                .stream()
+                .findFirst()
+                .map(remindMapper::toDto);
     }
 
 
@@ -75,15 +105,18 @@ public class RemindService {
      *     полное описание, дату и время напоминания. И если проверка пройдена, то обновляет напоминание
      * </p>
      * @param title Краткое описание напоминания
-     * @param remindDTO Напоминание
-     * @return Обновленное напоминание
+     * @param remindDTO DTO с новыми данными
+     * @return {@link Optional} с обновлённым {@link RemindDTO}, если найдено
      */
-    public RemindDTO updateRemindByTitle(String title, RemindDTO remindDTO) {
-        Remind existRemind = remindRepository.findByTitle(title)
+    public Optional<RemindDTO> updateRemindByTitle(String title, RemindDTO remindDTO) {
+        Optional<Remind> optionalRemind = remindRepository.findByTitle(title)
                 .stream()
-                .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException(
-                        String.format("Напоминание с заголовком %s не найдено!",title)));
+                .findFirst();
+        if (optionalRemind.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Remind existRemind = optionalRemind.get();
 
         if (remindDTO.getTitle() != null) {
             existRemind.setTitle(remindDTO.getTitle());
@@ -92,12 +125,12 @@ public class RemindService {
             existRemind.setDescription(remindDTO.getDescription());
         }
         if (remindDTO.getDateOfRemind() != null && remindDTO.getTimeOfRemind() != null) {
-            existRemind.setDateTimeOfRemind(remindDTO.toLocalDateTime());
+            existRemind.setDateTimeOfRemind(remindDTO.getDateOfRemind().atTime(remindDTO.getTimeOfRemind()));
         }
 
         Remind savedRemind = remindRepository.save(existRemind);
 
-        return RemindDTO.fromEntity(savedRemind);
+        return Optional.of(remindMapper.toDto(savedRemind));
     }
 
 
@@ -107,69 +140,56 @@ public class RemindService {
      *     Метод ищет в базе данных напоминание по идентификатору,
      *     проверяет, не являются ли поля {@link Remind} null: краткое описание,
      *     полное описание, дату и время напоминания. И если проверка пройдена, то обновляет напоминание
-     *      * </p>
-     * @param id Идентификатор напоминания
-     * @param remind Напоминание
-     * @return Найденное напоминание
+     * </p>
+     * @param id Идентификатор существующего напоминания
+     * @param remindDTO DTO с новыми данными
+     * @return {@link Optional} с обновлённым {@link RemindDTO}, если найдено
      */
-    public Remind updateRemindById(Long id, Remind remind) {
-        Remind existRemind = remindRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        String.format("Напоминание с id %d не найдено!", id)));
-        if (remind.getTitle() != null) {
-            existRemind.setTitle(remind.getTitle());
+    public Optional<RemindDTO> updateRemindById(Long id, RemindDTO remindDTO) {
+        Optional<Remind> optionalRemind = remindRepository.findById(id);
+
+        if (optionalRemind.isEmpty()) {
+            return Optional.empty();
         }
-        if (remind.getDescription() != null) {
-            existRemind.setDescription(remind.getDescription());
+        Remind existRemind = optionalRemind.get();
+        if (remindDTO.getTitle() != null) {
+            existRemind.setTitle(remindDTO.getTitle());
         }
-        if (remind.getDateTimeOfRemind() != null) {
-            existRemind.setDateTimeOfRemind(remind.getDateTimeOfRemind());
+        if (remindDTO.getDescription() != null) {
+            existRemind.setDescription(remindDTO.getDescription());
         }
-        return remindRepository.save(existRemind);
+        if (remindDTO.getDateOfRemind() != null && remindDTO.getTimeOfRemind() != null) {
+        LocalDate date = remindDTO.getDateOfRemind();
+        LocalTime time = remindDTO.getTimeOfRemind();
+        existRemind.setDateTimeOfRemind(date.atTime(time));
+    }
+
+        Remind updateRemind = remindRepository.save(existRemind);
+        RemindDTO resultDto = remindMapper.toDto(updateRemind);
+        return Optional.of(resultDto);
     }
 
 
     /**
      * Метод поиска напоминания по полному описанию
-     * @param description Полное описание напоминания
-     * @return Напоминание
+     * @param description полное описание напоминания
+     * @return {@link Optional} с {@link RemindDTO}, если найдено
      */
-    public RemindDTO findRemindByDescription(String description) {
-    Remind remind = remindRepository.findByDescription(description)
-            .stream()
-            .findFirst()
-            .orElseThrow(() -> new EntityNotFoundException(
-                    String.format("Напоминание с описанием '%s' не найдено!", description)
-            ));
-
-    return RemindDTO.fromEntity(remind);
-    }
-
-
-    /**
-     * Метод преобразования класса {@link Remind} в {@link RemindDTO}
-     * @param remind Напоминание
-     * @return Напоминание, преобразованное в {@link RemindDTO}
-     */
-    private RemindDTO convertToDTO(Remind remind) {
-        return new RemindDTO(
-                remind.getRemindId(),
-                remind.getTitle(),
-                remind.getDescription(),
-                remind.getDateTimeOfRemind().toLocalDate(),
-                remind.getDateTimeOfRemind().toLocalTime(),
-                remind.getUserId()
-        );
+    public Optional<RemindDTO> findRemindByDescription(String description) {
+        return remindRepository.findByDescription(description)
+                .stream()
+                .findFirst()
+                .map(remindMapper::toDto);
     }
 
 
     /**
      * Метод для получения списка всех напоминаний в виде списка {@link RemindDTO}
-     * @return Список всех напоминаний
+     * @return cписок всех напоминаний в форме DTO
      */
     public List<RemindDTO> getAllReminds() {
         return remindRepository.findAll().stream()
-                .map(this::convertToDTO)
+                .map(remindMapper::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -177,21 +197,21 @@ public class RemindService {
     /**
      * Метод извлекает все напоминания из репозитория , преобразует в DTO
      * и применяет фильтр к списку напоминаний по краткому описанию, дате и времени напоминания.
-     * @param titleFilter фильтр по заголовку напоминания (может быть null)
+     * @param titleFilter фильтр по краткому описанию напоминания (может быть null)
      * @param dateFilter фильтр по дате напоминания (может быть null)
      * @param timeFilter фильтр по времени напоминания (может быть null)
      * @return список напоминаний, которые удовлетворяют критериям фильтра
      */
     public List<RemindDTO> filterReminds(String titleFilter, LocalDate dateFilter, LocalTime timeFilter) {
         return remindRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .filter(dto -> dto.matchesFilters(titleFilter, dateFilter, timeFilter))
+                .map(remindMapper::toDto)
+                .filter(dto -> matchesFilters(dto, titleFilter, dateFilter, timeFilter))
                 .collect(Collectors.toList());
     }
 
 
     /**
-     * Метод получает все напоминания, сортирует их с помощью компаратора из {@link RemindDTO#getComparator(String)},
+     * Метод получает все напоминания, сортирует их с помощью компаратора из {@link RemindDtoUtils#getComparator(String)},
      * и возвращает отсортированный список по указанному критерию
      * @param sortBy Критерий сортировки. Возможные значения:
      *               <ul>
@@ -204,8 +224,7 @@ public class RemindService {
      */
     public List<RemindDTO> getSortedReminds(String sortBy) {
         return getAllReminds().stream()
-                .sorted(RemindDTO.getComparator(sortBy))
+                .sorted(getComparator(sortBy))
                 .collect(Collectors.toList());
     }
-
 }

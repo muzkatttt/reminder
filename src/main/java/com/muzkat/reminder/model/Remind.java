@@ -10,8 +10,6 @@ import jakarta.persistence.GenerationType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.time.LocalDateTime;
 
 
@@ -65,32 +63,4 @@ public class Remind {
     @Column(name="user_id")
     private Long userId;
 
-
-    /**
-     * Конструктор - создание нового объекта
-     * @param title краткое описание
-     * @param description полное описание
-     * @param dateTimeOfRemind дата и время отправки напоминания пользователю
-     * @param userId идентификатор пользователя
-     */
-    @Autowired
-    public Remind(String title, String description, LocalDateTime dateTimeOfRemind, Long userId) {
-        this.title = title;
-        this.description = description;
-        this.dateTimeOfRemind = dateTimeOfRemind;
-        this.userId = userId;
-    }
-
-
-    /**
-     * Конструктор - создание нового объекта
-     * @param title Краткое описание
-     * @param description Полное описание
-     * @param dateTimeOfRemind Дата и время отправки напоминания пользователю
-     */
-    public Remind(String title, String description, LocalDateTime dateTimeOfRemind) {
-        this.title = title;
-        this.description = description;
-        this.dateTimeOfRemind = dateTimeOfRemind;
-    }
 }
