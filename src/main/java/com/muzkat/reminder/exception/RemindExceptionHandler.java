@@ -12,11 +12,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
  * Глобальный обработчик исключений для RemindController
- * <p>Класс перехватывает исключения, возникающие в контроллере,
- * и преобразует их в структурированный JSON-ответ с HTTP-статусом и описанием ошибки.</p>
+ * <p>Класс перехватывает исключения, возникающие в контроллерах
+ * и преобразует их в структурированный JSON-ответ с HTTP-статусом и описанием ошибки</p>
  * @author ekaterinarodionova
  */
 
@@ -63,6 +64,18 @@ public class RemindExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneralException(Exception e) {
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Внутренняя ошибка сервера: " + e.getMessage());
+    }
+
+    /**
+     * Метод обрабатывает исключения {@link NoSuchElementException},
+     * возникшие при отсутствии запрашиваемого объекта.
+     * @param e исключение NoSuchElementException, содержащее информацию о причине ошибки
+     * @return ответ с HTTP-статусом 404 NOT_FOUND и сообщением об ошибке
+     */
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<Map<String, Object>> handleNotFound(NoSuchElementException e) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND,
+                "Объект не найден : " + e.getMessage());
     }
 
     /**

@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3
+      author: ekaterinarodionova
+      preConditions:
+        - not:
+            - columnExists:
+                tableName: app_user
+                columnName: telegram_chat_id
+      changes:
+        - addColumn:
+            tableName: app_user
+            columns:
+              - column:
+                  name: telegram_chat_id
+                  type: VARCHAR(255)

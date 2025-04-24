@@ -14,7 +14,8 @@ import java.time.LocalDateTime;
 
 
 /**
- * Класс напоминания со свойствами <b>id</b>, <b>title</b>, <b>description</b>, <b>dateTimeOfRemind</b>.
+ * Класс напоминания со свойствами <b>id</b>, <b>title</b>, <b>description</b>, <b>dateTimeOfRemind</b>,
+ * <b>userId</b>, <b>notified</b>.
  *  @author ekaterinarodionova
  */
 
@@ -63,4 +64,11 @@ public class Remind {
     @Column(name="user_id")
     private Long userId;
 
+
+    /**
+     * Флаг, который показывает, было ли отправлено уведомление пользователю.
+     * Применяется для исключения повторной отправки одного и того же уведомления.
+     * Устанавливается значение true, если уведомления были отправлены
+     */
+    private boolean notified;
 }

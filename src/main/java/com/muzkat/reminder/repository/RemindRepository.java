@@ -3,6 +3,8 @@ package com.muzkat.reminder.repository;
 import com.muzkat.reminder.model.Remind;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -30,4 +32,15 @@ public interface RemindRepository extends JpaRepository<Remind, Long> {
      */
     List<Remind> findByDescription(String description);
 
+
+    /**
+     * Метод поиска всех напоминаний по дате и времени, по которым
+     * время отправки напоминания или уже прошли или еще не были отправлены
+     * и поле notified имеет значение false.
+     * Метод используется для автоматической отправки просроченных напоминаний
+     * с помощью планировщика задач {@code @Scheduled}.
+     * @param time значение времени, по которому выбираются напоминания с {@code remind < time}
+     * @return список напоминаний, удовлетворяющих условиям фильтра
+     */
+    List<Remind> findByDateTimeOfRemindBeforeAndNotifiedFalse(LocalDateTime time);
 }

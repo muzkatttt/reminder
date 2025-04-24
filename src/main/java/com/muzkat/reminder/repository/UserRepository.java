@@ -4,6 +4,8 @@ import com.muzkat.reminder.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 
 /**
  * Репозиторий для работы с сущностями типа User.
@@ -22,4 +24,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
      *          false не существует
      */
     boolean existsByEmail(String email);
+
+    /**
+     * Метод ищет пользователя по адресу электронной почты
+     * @param email адрес электронной почты пользователя
+     * @return {@link Optional} с найденным {@link User}, если пользователь существует,
+     *      иначе возвращает пустой {@link Optional}
+     */
+    Optional<User> findByEmail(String email);
 }

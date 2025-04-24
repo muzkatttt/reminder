@@ -4,7 +4,7 @@ POST http://localhost:8080/api/remind/create
 {
 "title": "wow! check and update",
 "description": "wow! after update",
-"dateOfRemind": "2025-03-10",
+"dateOfRemind": "2025-05-10",
 "timeOfRemind": "18:00:00",
 "userId": 1
 }
@@ -58,3 +58,16 @@ GET http://localhost:8080/api/remind/filter?time=20:00:00
 по краткому описанию: http://localhost:8080/api/remind/sorted?sortBy=title
 по дате: http://localhost:8080/api/remind/sorted?sortBy=date
 по времени: http://localhost:8080/api/remind/sorted?sortBy=time
+
+Проверить отправку напоминания на электронную почту
+(в целях проверки корректности работы подключилась к Mailtrap)
+POST http://localhost:8080/api/email/send/73
+
+Настройка бота в Telegram:
+1. найти @BotFather -> отправить ему сообщение /start -> /newbot
+2. Указать имя и юзернейм (должен оканчиваться на bot, я сделала kjavadeveloper_reminder_bot)
+3. Получить токен — это будет API-ключ от бота 
+4. Написать сообщение боту https://t.me/<юзернейм_бота>
+5. В браузере отправить запрос к Telegram API по ссылке: https://api.telegram.org/bot<ТОКЕН_БОТА>/getUpdates
+6. Отправить любое сообщение в свой чат-бот, обновить браузер, и в сообщении найти Id чата
+7. Скопировать id чата и токен, они понадобятся, чтобы настроить отправку уведомлений в Телеграм.
