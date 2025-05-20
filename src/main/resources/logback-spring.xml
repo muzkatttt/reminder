@@ -43,7 +43,7 @@
     </logger>
 
     <!-- Логгер для email -->
-    <logger name="com.muzkat.reminder.service.EmailSendService" level="INFO" additivity="false">
+    <logger name="com.muzkat.reminder.service.notification.EmailSendService" level="INFO" additivity="false">
         <appender-ref ref="EMAIL" />
     </logger>
     <logger name="com.muzkat.reminder.controllers.EmailController" level="INFO" additivity="false">

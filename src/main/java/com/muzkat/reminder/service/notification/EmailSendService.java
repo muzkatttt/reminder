@@ -3,13 +3,14 @@ package com.muzkat.reminder.service.notification;
 import lombok.AllArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 /**
  * Сервис для отправки напоминаний по электронной почте
  * <p>
- * Использует {@link JavaMailSender} для отправки простых текстовых сообщений
- * указанному получателю. Отправка поддерживает только текст (без HTML и вложений)
+ *     Использует {@link JavaMailSender} для отправки простых текстовых сообщений
+ *     указанному получателю. Отправка поддерживает только текст (без HTML и вложений)
  * </p>
  */
 @Service
@@ -33,6 +34,7 @@ public class EmailSendService {
      * @param messageSubject тема письма
      * @param textOfRemind текст письма (содержимое напоминания)
      */
+    @Async
     public void sendEmail(String mailTo, String messageSubject, String textOfRemind){
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(mailTo);

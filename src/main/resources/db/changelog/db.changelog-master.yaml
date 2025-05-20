@@ -9,3 +9,5 @@ databaseChangeLog:
       file: db/changelog/3-add-telegram-chat-id-to-user.yaml
   - include:
       file: db/changelog/4-add-unique-constraint-to-user-email.yaml
+  - include:
+      file: db/changelog/5-add-user-credentials.yaml

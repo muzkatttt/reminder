@@ -5,10 +5,12 @@ import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -16,8 +18,10 @@ import java.util.NoSuchElementException;
 
 /**
  * Глобальный обработчик исключений для RemindController
- * <p>Класс перехватывает исключения, возникающие в контроллерах
- * и преобразует их в структурированный JSON-ответ с HTTP-статусом и описанием ошибки</p>
+ * <p>
+ *     Класс перехватывает исключения, возникающие в контроллерах
+ *     и преобразует их в структурированный JSON-ответ с HTTP-статусом и описанием ошибки
+ * </p>
  * @author ekaterinarodionova
  */
 
@@ -76,6 +80,29 @@ public class RemindExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleNotFound(NoSuchElementException e) {
         return buildErrorResponse(HttpStatus.NOT_FOUND,
                 "Объект не найден : " + e.getMessage());
+    }
+
+    /**
+     * Метод обрабатывает исключения {@link BadCredentialsException},
+     * возникшие при неправильных учетных данных пользователя.
+     * @param e исключение BadCredentialsException, содержащее информацию об ошибке
+     * @return ответ с HTTP-статусом 401 Unauthorized и сообщением об ошибке
+     */
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<Map<String, Object>> handleBadCredentials(BadCredentialsException e) {
+        return buildErrorResponse(HttpStatus.UNAUTHORIZED,
+                "Некорректные данные пользователя при авторизации: " + e.getMessage());
+    }
+
+    /**
+     * Метод обрабатывает исключения {@link IOException}, возникшие при операциях записи JWT-токена в файл.
+     * @param e исключение IOException, содержащее информацию об ошибке
+     * @return ответ с HTTP-статусом 500 Internal Server Error и сообщением об ошибке
+     */
+    @ExceptionHandler(IOException.class)
+    public ResponseEntity<Map<String, Object>> handleIOException(IOException e) {
+        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Произошла ошибка при обработке файла: " + e.getMessage());
     }
 
     /**

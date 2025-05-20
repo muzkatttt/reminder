@@ -2,28 +2,28 @@ package com.muzkat.reminder.service;
 
 import com.muzkat.reminder.model.User;
 import com.muzkat.reminder.repository.UserRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 /**
- * Сервис для управления пользователями.
+ * Сервис для управления пользователями
  * <p>
  *     Класс содержит методы для создания, обновления, удаления пользователя.
- * Исключения не выбрасываются напрямую — используется Optional и boolean,
- * обработка ошибок происходит на уровне контроллера.</p>
+ *     Исключения не выбрасываются напрямую — используется Optional и boolean,
+ *     обработка ошибок происходит на уровне контроллера
  * </p>
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UserService {
 
     /** Поле экземпляр {@link UserRepository} */
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
 
     /**
-     * Метод создания нового пользователя
+     * Метод для создания нового пользователя
      * @param user объект пользователя для сохранения в базе данных
      * @return сохраненный объект пользователя или Optional.empty(),
      * если email уже существует или данные некорректны
@@ -85,6 +85,17 @@ public class UserService {
      */
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
+    }
+
+
+    /**
+     * Метод поиска пользователя по его email.
+     * Используется при авторизации через токен и при работе с текущим пользователем.
+     * @param email электронная почта пользователя
+     * @return Optional с объектом пользователя, если найден
+     */
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
     }
 
 

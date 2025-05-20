@@ -11,11 +11,11 @@ import java.util.Optional;
  * Репозиторий для работы с сущностями типа User.
  * Данное расширение {@link UserRepository} позволяет выполнять
  * стандартные CRUD-операции, содержит дополнительные методы
- * по поиску пользователя по имени и по адресу электронной почты
+ * по поиску пользователя по адресу электронной почты
+ * и по проверке существования пользователя при создании новой учетной записи в БД
  */
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
-
 
     /**
      * Метод проверяет, существует ли пользователь с таким же email перед созданием нового пользователя
@@ -25,6 +25,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     boolean existsByEmail(String email);
 
+
     /**
      * Метод ищет пользователя по адресу электронной почты
      * @param email адрес электронной почты пользователя
@@ -32,4 +33,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
      *      иначе возвращает пустой {@link Optional}
      */
     Optional<User> findByEmail(String email);
+
 }

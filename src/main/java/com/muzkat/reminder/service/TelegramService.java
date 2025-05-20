@@ -3,6 +3,7 @@ package com.muzkat.reminder.service;
 import com.muzkat.reminder.config.TelegramProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -38,6 +39,7 @@ public class TelegramService {
      * В случае ошибки логирует сообщение на уровне ERROR
      * @param message текст сообщения
      */
+    @Async
     public void sendMessage(String message) {
         String url = "https://api.telegram.org/bot" + telegramProperties.getToken() + "/sendMessage";
         Map<String, Object> request = new HashMap<>();

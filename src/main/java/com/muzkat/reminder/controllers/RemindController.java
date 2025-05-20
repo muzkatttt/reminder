@@ -1,12 +1,16 @@
 package com.muzkat.reminder.controllers;
 
 import com.muzkat.reminder.dto.RemindDTO;
+import com.muzkat.reminder.model.User;
 import com.muzkat.reminder.service.RemindService;
+import com.muzkat.reminder.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,13 +28,13 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
+
 /** Контроллер для управления напоминаниями.
  * Обрабатывает запросы на создание, поиск, обновление и удаление напоминаний.
  * Также добавлены методы для получения списка напоминаний, отфильтрованных
  * и отсортированных по краткому описанию, дате и времени.
  * Использует {@link com.muzkat.reminder.service.RemindService} для выполнения бизнес-логики.
  */
-
 @RestController
 @RequestMapping("api/remind")
 @RequiredArgsConstructor
@@ -40,6 +44,12 @@ public class RemindController {
      * Поле экземпляр RemindService
      */
     private final RemindService remindService;
+
+
+    /**
+     * Поле экземпляр UserService
+     */
+    private final UserService userService;
 
 
     /**
@@ -77,13 +87,27 @@ public class RemindController {
 
 
     /**
-     * Создание нового напоминания
-     * @param remindDTO объект напоминания
+     * Создание нового напоминания для авторизованного пользователя
+     * <p>
+     *     Извлекает адрес электронной почты пользователя из объекта {@code Authentication},
+     *     находит соответствующего пользователя в базе данных и создаёт новое напоминание,
+     *     связанное с этим пользователем. Возвращает ответ с кодом 201 (Created) и телом
+     *     созданного напоминания
+     * </p>
+     * @param remindDTO объект {@link RemindDTO}, содержащий данные напоминания
+     * @param authentication объект {@link Authentication}, содержащий информацию об авторизованном пользователе
      * @return cозданное напоминание с URI
+     * @throws UsernameNotFoundException если пользователь с указанным адресом электронной почты не найден
      */
     @PostMapping("/create")
-    public ResponseEntity<RemindDTO> createRemind(@Valid @RequestBody RemindDTO remindDTO) {
-        RemindDTO createdRemind = remindService.createRemind(remindDTO);
+    public ResponseEntity<RemindDTO> createRemind(@Valid @RequestBody RemindDTO remindDTO,
+                                                  Authentication authentication) {
+        String email = authentication.getName();
+        User user = userService.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Пользоватль с указанными данными не найден"));
+
+        RemindDTO createdRemind = remindService.createRemind(remindDTO, user);
+
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
@@ -120,7 +144,8 @@ public class RemindController {
     /**
      * Обновление напоминания по идентификатору
      * @param id идентификатор напоминания
-     * @return обновлённое напоминание в виде DTO, если обновление завершено успешно, или null-значение, если не найдено,
+     * @return обновлённое напоминание в виде DTO, если обновление завершено успешно,
+     * либо null-значение, если напоминание не найдено
      */
     @PutMapping("/by-id/{id}")
     public ResponseEntity<Optional<RemindDTO>> updateRemindById(@PathVariable Long id, @Valid @RequestBody RemindDTO remindDTO) {

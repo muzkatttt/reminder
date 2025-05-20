@@ -6,6 +6,7 @@ import com.muzkat.reminder.service.RemindService;
 import com.muzkat.reminder.service.TelegramService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -46,6 +47,7 @@ public class RemindNotificationScheduler {
      * дата которых уже наступила и которые ещё не были отправлены (notified = false).
      * Отправляет напоминания и логирует результат
      */
+    @Async
     @Scheduled(fixedRateString = "${reminder.scheduler.interval-ms}")
     public void checkDateTimeAndSendRemind(){
         LocalDateTime now = LocalDateTime.now();
