@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Планировщик -->
+    <appender name="SCHEDULER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/scheduler.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/scheduler.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>20</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- email-сервис -->
+    <appender name="EMAIL" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/email.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/email.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>20</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Основной логгер -->
+    <appender name="MAIN" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/reminder.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/reminder.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>20</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Логгер для scheduler -->
+    <logger name="com.muzkat.reminder.service.notification.RemindNotificationScheduler" level="INFO" additivity="false">
+        <appender-ref ref="SCHEDULER" />
+    </logger>
+
+    <!-- Логгер для email -->
+    <logger name="com.muzkat.reminder.service.notification.EmailSendService" level="INFO" additivity="false">
+        <appender-ref ref="EMAIL" />
+    </logger>
+    <logger name="com.muzkat.reminder.controllers.EmailController" level="INFO" additivity="false">
+        <appender-ref ref="EMAIL" />
+    </logger>
+
+    <!-- Основной логгер (root) -->
+    <root level="WARN">
+        <appender-ref ref="MAIN" />
+    </root>
+</configuration>

@@ -13,7 +13,7 @@ import java.util.Optional;
 
 /** Контроллер для управления пользователями.
  * Обрабатывает запросы на создание, поиск, обновление и удаление пользователей.
- * Использует {@link com.muzkat.reminder.service.UserService} для выполнения бизнес-логики.
+ * Использует {@link com.muzkat.reminder.service.UserService} для выполнения бизнес-логики
  */
 @RestController
 @RequestMapping("api/user")

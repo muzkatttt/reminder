@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3
+      author: ekaterinarodionova
+      preConditions:
+        - not:
+            - columnExists:
+                tableName: remind
+                columnName: notified
+      changes:
+        - addColumn:
+            tableName: remind
+            columns:
+              - column:
+                  name: notified
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false

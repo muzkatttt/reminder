@@ -22,6 +22,7 @@ public interface RemindMapper {
      */
     @Mapping(target = "dateOfRemind", expression = "java(remind.getDateTimeOfRemind().toLocalDate())")
     @Mapping(target = "timeOfRemind", expression = "java(remind.getDateTimeOfRemind().toLocalTime())")
+    @Mapping(source = "remindId", target = "id")
     RemindDTO toDto(Remind remind);
 
 
@@ -32,5 +33,7 @@ public interface RemindMapper {
      * @return cущность, соответствующая переданному DTO
      */
     @Mapping(target = "dateTimeOfRemind", expression = "java(dto.getDateOfRemind().atTime(dto.getTimeOfRemind()))")
+    @Mapping(target = "remindId", ignore = true)
+    @Mapping(target = "notified", ignore = true)
     Remind toEntity(RemindDTO dto);
 }

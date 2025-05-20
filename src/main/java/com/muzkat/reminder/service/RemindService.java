@@ -1,16 +1,21 @@
 package com.muzkat.reminder.service;
 
+import com.muzkat.reminder.dto.EmailResponseDTO;
 import com.muzkat.reminder.dto.RemindDTO;
+import com.muzkat.reminder.mapper.EmailResponseMapper;
 import com.muzkat.reminder.mapper.RemindMapper;
 import com.muzkat.reminder.model.Remind;
+import com.muzkat.reminder.model.User;
 import com.muzkat.reminder.repository.RemindRepository;
+import com.muzkat.reminder.repository.UserRepository;
+import com.muzkat.reminder.service.notification.EmailSendService;
 import com.muzkat.reminder.utils.RemindDtoUtils;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -21,15 +26,15 @@ import static com.muzkat.reminder.utils.RemindDtoUtils.matchesFilters;
 /**
  * Сервис для управления напоминаниями.
  * <p>
- *     Класс содержит методы для создания, обновления, удаления,
- * поиска по краткому и полному описанию напоминания,
- * по дате и времени напоминания.
- * Исключения не выбрасываются напрямую — используется Optional и boolean,
- * обработка ошибок происходит на уровне контроллера.
+ *     Содержит бизнес-логику создания, обновления, удаления и поиска напоминаний
+ *     по краткому и полному описанию, дате и времени.
+ *     Обрабатывает отправку напоминаний по электронной почте
  * </p>
+ * Исключения обрабатываются на уровне контроллеров через Optional и
+ * глобальный перехватчик {@link com.muzkat.reminder.exception.RemindExceptionHandler}
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class RemindService {
 
     /**
@@ -37,33 +42,56 @@ public class RemindService {
      */
     private final RemindRepository remindRepository;
 
-
     /**
      * Поле экземпляр {@link RemindMapper}
      */
     private final RemindMapper remindMapper;
 
+    /**
+     * Поле экземпляр {@link UserRepository}
+     */
+    private final UserRepository userRepository;
 
     /**
-     * Метод для создания напоминания
-     * <p>
-     *     Метод преобразует DTO в сущность {@link Remind},
-     *     сохраняет его в базе данных и возвращает новое напоминание
-     * </p>
-     * @param remindDTO напоминание
-     * @return новое напоминание в виде {@link RemindDTO}
+     * Поле экземпляр {@link EmailSendService}
      */
-    public RemindDTO createRemind(RemindDTO remindDTO) {
+    private final EmailSendService emailSendService;
+
+    /**
+     * Поле экземпляр {@link TelegramService}
+     */
+    private final TelegramService telegramService;
+
+    /**
+     * Поле экземпляр {@link EmailResponseMapper}
+     */
+    private final EmailResponseMapper emailResponseMapper;
+
+
+    /**
+     * Создаёт новое напоминание для указанного пользователя
+     * <p>
+     *     Преобразует переданный {@link RemindDTO} в сущность {@link Remind},
+     *     устанавливает идентификатор пользователя, сохраняет напоминание в базе данных
+     *     и возвращает сохранённое напоминание в виде {@link RemindDTO}.
+     * </p>
+     * @param remindDTO  объект {@link RemindDTO}, содержащий данные напоминания
+     * @param user объект {@link User}, для которого создаётся напоминание
+     * @return сохранённое напоминание в виде {@link RemindDTO}
+     */
+    public RemindDTO createRemind(RemindDTO remindDTO, User user) {
         Remind remind = remindMapper.toEntity(remindDTO);
-        Remind savedRemind = remindRepository.save(remind);
-        return remindMapper.toDto(savedRemind);
+        remind.setUserId(user.getId());
+        Remind saved = remindRepository.save(remind);
+        return remindMapper.toDto(saved);
     }
 
 
     /**
      * Метод удаления напоминания по id напоминания
      * @param id - идентификатор напоминания
-     * @return true, если удаление прошло успешно; false, если напоминание не найдено
+     * @return  true - если удаление прошло успешно,
+     *          false - если напоминание не найдено
      */
     public boolean deleteRemind(Long id) {
         if (!remindRepository.existsById(id)) {
@@ -159,10 +187,10 @@ public class RemindService {
             existRemind.setDescription(remindDTO.getDescription());
         }
         if (remindDTO.getDateOfRemind() != null && remindDTO.getTimeOfRemind() != null) {
-        LocalDate date = remindDTO.getDateOfRemind();
-        LocalTime time = remindDTO.getTimeOfRemind();
-        existRemind.setDateTimeOfRemind(date.atTime(time));
-    }
+            LocalDate date = remindDTO.getDateOfRemind();
+            LocalTime time = remindDTO.getTimeOfRemind();
+            existRemind.setDateTimeOfRemind(date.atTime(time));
+        }
 
         Remind updateRemind = remindRepository.save(existRemind);
         RemindDTO resultDto = remindMapper.toDto(updateRemind);
@@ -211,7 +239,8 @@ public class RemindService {
 
 
     /**
-     * Метод получает все напоминания, сортирует их с помощью компаратора из {@link RemindDtoUtils#getComparator(String)},
+     * Метод получает все напоминания, сортирует их с помощью компаратора
+     * из {@link RemindDtoUtils#getComparator(String)},
      * и возвращает отсортированный список по указанному критерию
      * @param sortBy Критерий сортировки. Возможные значения:
      *               <ul>
@@ -226,5 +255,37 @@ public class RemindService {
         return getAllReminds().stream()
                 .sorted(getComparator(sortBy))
                 .collect(Collectors.toList());
+    }
+
+
+    /**
+     * Метод отправляет напоминание по электронной почте по заданному идентификатору {@link Remind}.
+     * <p>
+     * Выполняет следующие действия:
+     * <ul>
+     *     <li>Извлекает напоминание из базы данных по идентификатору</li>
+     *     <li>Находит пользователя, связанного с напоминанием</li>
+     *     <li>Отправляет письмо с темой и содержимым напоминания</li>
+     *     <li>Устанавливает флаг {@code notified = true} и сохраняет напоминание</li>
+     *     <li>Формирует и возвращает DTO-ответ для клиента</li>
+     * </ul>
+     * </p>
+     * @param remindId идентификатор напоминания
+     * @return DTO с отправленным напоминанием и статусом доставки
+     * @throws NoSuchElementException если напоминание или пользователь не найдены
+     */
+    public EmailResponseDTO sendRemindById(Long remindId) {
+        Remind remind = remindRepository.findById(remindId).orElseThrow();
+        User user = userRepository.findById(remind.getUserId()).orElseThrow();
+
+        emailSendService.sendEmail(
+                user.getEmail(),
+                "Напоминание: " + remind.getTitle(),
+                remind.getDescription()
+        );
+
+        remind.setNotified(true);
+        remindRepository.save(remind);
+        return emailResponseMapper.toDto(remind, "Письмо отправлено");
     }
 }
