@@ -38,7 +38,6 @@ public class RemindExceptionHandler {
         return buildErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
-
     /**
      * Метод обрабатывает исключение, возникающее при нарушении целостности данных в базе.
      * @param e исключение, связанное с ошибками в базе данных
@@ -92,6 +91,42 @@ public class RemindExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleBadCredentials(BadCredentialsException e) {
         return buildErrorResponse(HttpStatus.UNAUTHORIZED,
                 "Некорректные данные пользователя при авторизации: " + e.getMessage());
+    }
+
+    /**
+     * Метод брабатывает исключение {@link IllegalArgumentException}
+     * @param e исключение IllegalArgumentException
+     * @return ответ с HTTP-статусом 400 и сообщением об ошибке
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException e) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST,
+                "Ошибка! Переданы некорректные данные: " + e.getMessage());
+    }
+
+    /**
+     * Метод обрабатывает исключение {@link InvalidEmailException},
+     * возникшее при некорректном email пользователя.
+     * @param e исключение InvalidEmailException
+     * @return ответ с HTTP-статусом 400 и сообщением об ошибке
+     */
+    @ExceptionHandler(InvalidEmailException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidEmail(InvalidEmailException e) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST,
+                "Некорректный email пользователя: " + e.getMessage());
+    }
+
+    /**
+     * Метод обрабатывает исключение {@link UserAlreadyExistsException},
+     * возникшее при попытке регистрации существующего пользователя.
+     * @param e исключение UserAlreadyExistsException
+     * @return ответ с HTTP-статусом 409 и сообщением об ошибке
+     */
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<Map<String, Object>> handleUserExists(UserAlreadyExistsException e) {
+        return buildErrorResponse(HttpStatus.CONFLICT,
+                "Произошла ошибка при регистрации! Пользователь уже зарегистирован в системе: "
+                + e.getMessage());
     }
 
     /**

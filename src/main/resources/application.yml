@@ -32,9 +32,11 @@ reminder:
     interval-ms: 300000
 
 telegram:
-  bot:
-    token: ${TELEGRAM_BOT_TOKEN}
-    chat-id: ${TELEGRAM_CHAT_ID}
+  token: ${TELEGRAM_BOT_TOKEN}
+  chat-id: ${TELEGRAM_CHAT_ID}
+  base-url: https://api.telegram.org
+  bot-path: /bot
+  send-message-path: /sendMessage
 
 credentials:
   username: ${CREDENTIAL_EMAIL}
@@ -43,3 +45,18 @@ credentials:
 jwt:
   secret: ${JWT_SECRET}
   expiration: 3600000
+
+spring-doc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+hunter:
+  api:
+    key: ${HUNTER_API_KEY}
+    url: https://api.hunter.io/v2/email-verifier
+
+external:
+  remind:
+    url: http://localhost:8081/api/remind/all

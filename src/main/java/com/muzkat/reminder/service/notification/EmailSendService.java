@@ -1,6 +1,7 @@
 package com.muzkat.reminder.service.notification;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @AllArgsConstructor
+@Slf4j
 public class EmailSendService {
 
     /**
@@ -40,6 +42,9 @@ public class EmailSendService {
         message.setTo(mailTo);
         message.setSubject(messageSubject);
         message.setText(textOfRemind);
+
         javaMailSender.send(message);
+
+        log.info("Сообщение успешно отправлено на почту пользователя: {}", message);
     }
 }

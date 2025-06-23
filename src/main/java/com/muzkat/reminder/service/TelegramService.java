@@ -3,6 +3,7 @@ package com.muzkat.reminder.service;
 import com.muzkat.reminder.config.TelegramProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -11,8 +12,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Сервис для отправки сообщений в Telegram.
- * Использует Telegram Bot API и настройки, заданные в {@link TelegramProperties}.
+ * Сервис для асинхронной отправки сообщений в Telegram.
+ * Использует Telegram Bot API и параметры из {@link TelegramProperties}.
  * Выполняет HTTP-запросы через {@link RestTemplate} для отправки текстовых сообщений
  * в указанный чат Telegram
  */
@@ -22,7 +23,8 @@ import java.util.Map;
 public class TelegramService {
 
     /**
-     * Поле конфигурационные параметры бота: токен и chatId
+     * Конфигурационные параметры для обращения к Telegram Bot API:
+     * включает токен, chatId и пути к методам API.
      */
     private final TelegramProperties telegramProperties;
 
@@ -30,7 +32,14 @@ public class TelegramService {
     /**
      * Поле HTTP-клиент для выполнения запросов к Telegram Bot API
      */
-    private final RestTemplate restTemplate = new RestTemplate();
+    @Qualifier("externalRestTemplate")
+    private final RestTemplate restTemplate;
+
+
+    /**
+     * Режим форматирования сообщений в Telegram в формате Markdown
+     */
+    private static final String PARSE_MODE = "Markdown";
 
 
     /**
@@ -41,11 +50,15 @@ public class TelegramService {
      */
     @Async
     public void sendMessage(String message) {
-        String url = "https://api.telegram.org/bot" + telegramProperties.getToken() + "/sendMessage";
+        String url = telegramProperties.getBaseUrl()
+                     + telegramProperties.getBotPath()
+                     + telegramProperties.getToken()
+                     + telegramProperties.getSendMessagePath();
+
         Map<String, Object> request = new HashMap<>();
         request.put("chat_id", telegramProperties.getChatId());
         request.put("text", message);
-        request.put("parse_mode", "Markdown");
+        request.put("parse_mode", PARSE_MODE);
 
         try {
             restTemplate.postForObject(url, request, String.class);
@@ -55,3 +68,4 @@ public class TelegramService {
         }
     }
 }
+

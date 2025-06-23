@@ -16,13 +16,12 @@ import org.springframework.stereotype.Component;
  * Пример конфигурации:
  * <pre>
  * telegram:
- *   bot:
- *     token: your_bot_token
- *     chat-id: your_chat_id
+ *   token: your_bot_token
+ *   chat-id: your_chat_id
  * </pre>
  */
 @Component
-@ConfigurationProperties(prefix = "telegram.bot")
+@ConfigurationProperties(prefix = "telegram")
 @Getter
 @Setter
 public class TelegramProperties {
@@ -38,4 +37,21 @@ public class TelegramProperties {
      * Можно получить при первом сообщении пользователя в бот
      */
     private String chatId;
+
+    /**
+     * Базовый URL Telegram API
+     */
+    private String baseUrl;
+
+    /**
+     * Путь к боту Telegram, содержащий префикс /bot и далее токен (добавляется вручную в коде)
+     * Пример: /bot
+     */
+    private String botPath;
+
+    /**
+     * Путь к методу отправки сообщения Telegram API
+     * Пример: /sendMessage
+     */
+    private String sendMessagePath;
 }

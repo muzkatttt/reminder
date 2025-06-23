@@ -3,6 +3,9 @@ package com.muzkat.reminder.controllers;
 import com.muzkat.reminder.dto.AuthRequestDTO;
 import com.muzkat.reminder.dto.AuthResponseDTO;
 import com.muzkat.reminder.service.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +33,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 @RestController
 @RequestMapping("auth")
 @RequiredArgsConstructor
+@Tag(name = "Auth Controller", description = "Обработка запросов аутентификации и регистрации пользователей")
 public class AuthController {
 
     /**
@@ -44,7 +48,18 @@ public class AuthController {
      * @return JWT токен в случае успешной аутентификации
      */
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody AuthRequestDTO request){
+    @Operation(
+            summary = "Аутентификация пользователя",
+            description = "Принимает email и пароль, возвращает JWT-токен при успешной авторизации",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "DTO с email и паролем пользователя",
+                    required = true),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Успешная аутентификация, JWT-токен в ответе"),
+                    @ApiResponse(responseCode = "401", description = "Некорректные учетные данные")
+            }
+    )
+    public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody AuthRequestDTO request) {
         String token = authService.login(request.getEmail(), request.getPassword());
         return ResponseEntity.ok(new AuthResponseDTO(token));
     }
@@ -56,6 +71,17 @@ public class AuthController {
      * @return сообщение об успешной регистрации
      */
     @PostMapping("/register")
+    @Operation(
+            summary = "Регистрация пользователя",
+            description = "Создает нового пользователя. Email пользователя должен быть уникальным и валидным",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "DTO с email и паролем пользователя",
+                    required = true),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Пользователь успешно зарегистрирован"),
+                    @ApiResponse(responseCode = "400", description = "Пользователь уже существует или email невалиден")
+            }
+    )
     public ResponseEntity<String> register(@Valid @RequestBody AuthRequestDTO request) {
         authService.register(request.getEmail(), request.getPassword());
         return ResponseEntity.ok("Пользователь успешно зарегистрирован");
