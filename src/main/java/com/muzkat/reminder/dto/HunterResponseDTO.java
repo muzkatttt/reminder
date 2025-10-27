@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Schema(description = "Ответ от серввиса по проверке корректности email-адреса Hunter.io")
+@Schema(description = "Ответ от сервиса по проверке корректности email-адреса Hunter.io")
 public class HunterResponseDTO {
 
     /**

@@ -19,7 +19,7 @@ import java.util.Optional;
  * Использует {@link com.muzkat.reminder.service.UserService} для выполнения бизнес-логики
  */
 @RestController
-@RequestMapping("api/user")
+@RequestMapping("/api/user")
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Tag(name = "User Controller", description = "Обработка запросов на создание, поиск, обновление и удаление пользователя")

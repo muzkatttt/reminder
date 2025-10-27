@@ -13,7 +13,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -73,8 +72,10 @@ public class RemindController {
                     @Parameter(name = "id", description = "Id напоминания")
             }
     )
-    public ResponseEntity<Optional<RemindDTO>> findById(@PathVariable Long id) {
-        return ResponseEntity.ok(remindService.findRemindById(id));
+    public ResponseEntity<RemindDTO> findById(@PathVariable Long id) {
+        return remindService.findRemindById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
 
@@ -91,8 +92,10 @@ public class RemindController {
                     @Parameter(name = "title", description = "Краткое описание напоминания")
             }
     )
-    public ResponseEntity<Optional<RemindDTO>> findByTitle(@PathVariable String title) {
-        return ResponseEntity.ok(remindService.findRemindByTitle(title));
+    public ResponseEntity<RemindDTO> findByTitle(@PathVariable String title) {
+        return remindService.findRemindByTitle(title)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
 
@@ -109,9 +112,10 @@ public class RemindController {
                     @Parameter(name = "description", description = "Полное описание напоминания")
             }
     )
-    public ResponseEntity<Optional<RemindDTO>> findByDescription(@PathVariable String description) {
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(remindService.findRemindByDescription(description));
+    public ResponseEntity<RemindDTO> findByDescription(@PathVariable String description) {
+        return remindService.findRemindByDescription(description)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
 
@@ -222,8 +226,10 @@ public class RemindController {
                     required = true,
                     content = @Content(schema = @Schema(implementation = RemindDTO.class)))
     )
-    public ResponseEntity<Optional<RemindDTO>> updateRemindById(@PathVariable Long id, @Valid @RequestBody RemindDTO remindDTO) {
-        return ResponseEntity.ok(remindService.updateRemindById(id, remindDTO));
+    public ResponseEntity<RemindDTO> updateRemindById(@PathVariable Long id, @Valid @RequestBody RemindDTO remindDTO) {
+        return remindService.updateRemindById(id, remindDTO)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
 
