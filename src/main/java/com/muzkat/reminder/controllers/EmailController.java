@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.PathVariable;
  *  </p>
  */
 @RestController
-@RequestMapping("api/email")
+@RequestMapping("/api/email")
 @RequiredArgsConstructor
 @Tag(name = "Email Sender", description = "Отправка уведомлений пользователю по электронной почте")
 public class EmailController {

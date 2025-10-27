@@ -24,6 +24,7 @@ repositories {
 
 dependencies {
 
+    testImplementation 'org.projectlombok:lombok:1.18.26'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     implementation 'org.mapstruct:mapstruct:1.5.5.Final'
@@ -37,6 +38,7 @@ dependencies {
     implementation 'org.postgresql:postgresql:42.7.2'
     implementation 'org.liquibase:liquibase-core'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'com.h2database:h2'
     implementation 'org.springframework.data:spring-data-jpa:3.4.0'
