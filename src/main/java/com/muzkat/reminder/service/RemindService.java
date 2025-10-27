@@ -67,6 +67,10 @@ public class RemindService {
      */
     private final EmailResponseMapper emailResponseMapper;
 
+    /**
+     * Поле экземпляр для проверки корректности email-адреса с использованием стороннего API Hunter.io
+     */
+    private final EmailValidationService emailValidationService;
 
     /**
      * Создаёт новое напоминание для указанного пользователя
@@ -130,7 +134,8 @@ public class RemindService {
      * <p>
      *     Метод ищет в базе данных напоминание по краткому описанию,
      *     проверяет, не являются ли поля {@link Remind} null: краткое описание,
-     *     полное описание, дату и время напоминания. И если проверка пройдена, то обновляет напоминание
+     *     полное описание, дату и время напоминания. И если проверка пройдена,
+     *     то обновляет напоминание
      * </p>
      * @param title Краткое описание напоминания
      * @param remindDTO DTO с новыми данными
@@ -277,6 +282,10 @@ public class RemindService {
     public EmailResponseDTO sendRemindById(Long remindId) {
         Remind remind = remindRepository.findById(remindId).orElseThrow();
         User user = userRepository.findById(remind.getUserId()).orElseThrow();
+
+        if (!emailValidationService.isEmailValid(user.getEmail())) {
+            return emailResponseMapper.toDto(remind, "Email не прошел проверку валидности. Письмо не отправлено.");
+        }
 
         emailSendService.sendEmail(
                 user.getEmail(),

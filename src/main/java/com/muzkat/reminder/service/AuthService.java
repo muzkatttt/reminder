@@ -1,5 +1,7 @@
 package com.muzkat.reminder.service;
 
+import com.muzkat.reminder.exception.InvalidEmailException;
+import com.muzkat.reminder.exception.UserAlreadyExistsException;
 import com.muzkat.reminder.model.User;
 import com.muzkat.reminder.model.UserCredentials;
 import com.muzkat.reminder.repository.UserCredentialsRepository;
@@ -38,6 +40,11 @@ public class AuthService {
      */
     private final JwtTokenProvider jwtTokenProvider;
 
+    /**
+     * Сервис для проверки email-адресов через API Hunter.io
+     */
+    private final EmailValidationService emailValidationService;
+
 
     /**
      * Метод для аутентификации пользователя.
@@ -64,15 +71,24 @@ public class AuthService {
 
     /**
      * Метод для регистрации нового пользователя с указанными email и паролем
+     * <p>
+     *      Проверяет, существует ли пользователь с указанным email.
+     *      Выполняет валидацию email через внешний сервис {@link EmailValidationService},
+     *      использующий API Hunter.io. Создаёт нового пользователя и сохраняет его в базу данных.
+     *      Шифрует пароль с помощью {@link PasswordEncoder} и сохраняет учетные данные
+     * </p>
      * @param email email нового пользователя
      * @param password пароль нового пользователя
-     * @throws IllegalArgumentException если пользователь с таким email уже существует
+     * @throws UserAlreadyExistsException если пользователь с таким email уже существует
+     * @throws InvalidEmailException если email не прошёл валидацию на внешнем сервисе
      */
     public void register(String email, String password) {
         if (userRepository.findByEmail(email).isPresent()) {
-            throw new IllegalArgumentException("Пользователь уже существует");
+            throw new UserAlreadyExistsException("Пользователь уже существует: " + email);
         }
-
+        if (!emailValidationService.isEmailValid(email)) {
+            throw new InvalidEmailException("Не пройдена проверка email: " + email);
+        }
         User user = new User();
         user.setEmail(email);
         userRepository.save(user);
@@ -83,4 +99,5 @@ public class AuthService {
         userCredentialsRepository.save(credentials);
     }
 }
+
 

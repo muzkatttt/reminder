@@ -1,5 +1,6 @@
 package com.muzkat.reminder.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -12,6 +13,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "DTO-класс для передачи данных пользователя при аутентификации")
 public class AuthRequestDTO {
 
     /**

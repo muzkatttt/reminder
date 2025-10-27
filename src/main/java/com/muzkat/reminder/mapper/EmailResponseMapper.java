@@ -15,7 +15,6 @@ import org.mapstruct.Mapping;
  */
 @Mapper(componentModel = "spring")
 public interface EmailResponseMapper {
-
     /**
      * Преобразует сущность {@link Remind} в DTO {@link EmailResponseDTO}.
      * Дополнительно разбивает поле dateTimeOfRemind на dateOfRemind и timeOfRemind
@@ -29,4 +28,3 @@ public interface EmailResponseMapper {
     @Mapping(source = "status", target = "status")
     EmailResponseDTO toDto(Remind remind, String status);
 }
-

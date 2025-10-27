@@ -1,5 +1,6 @@
 package com.muzkat.reminder.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,6 +15,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Schema(description = "DTO-класс для ответа при аутентификации пользователя")
 public class AuthResponseDTO {
 
     /**

@@ -2,6 +2,9 @@ package com.muzkat.reminder.controllers;
 
 import com.muzkat.reminder.dto.TelegramUpdateDTO;
 import com.muzkat.reminder.repository.UserRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -21,6 +24,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("api/telegram")
 @Slf4j
+@Tag(name = "Telegram Registration Controller", description = "Обработка входящих сообщений от Telegram-бота. " +
+                                                              "Регистрация пользователя и сохранение его chat_id " +
+                                                              "по указанному email")
 public class TelegramRegistrationController {
 
     /**
@@ -40,6 +46,21 @@ public class TelegramRegistrationController {
      * @return HTTP-ответ с результатом регистрации Telegram-аккаунта
      */
     @PostMapping("/webhook")
+    @Operation(
+            summary = "Регистрация пользователя и сохранение его chat_id по указанному email",
+            description = "Обрабатывает обновления от Telegram Webhook. " +
+                          "Извлекает email из входящего сообщения и сопоставляет его с пользователем в системе. " +
+                          "Если пользователь найден, сохраняет Telegram chat_id в его учетную запись. " +
+                          "Используется для привязки Telegram к существующему пользователю",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Обновление Telegram с email",
+                    required = true
+            ),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Telegram добавлен к учетной записи"),
+                    @ApiResponse(responseCode = "400", description = "Некорректный запрос: отсутствует сообщение, чат или текст")
+            }
+    )
     public ResponseEntity<String> registrationUserByTelegram(@RequestBody TelegramUpdateDTO dto) {
         TelegramUpdateDTO.Message message = dto.getMessage();
         if (message == null || message.getChat() == null || message.getText() == null) {

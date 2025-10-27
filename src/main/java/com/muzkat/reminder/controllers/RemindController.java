@@ -4,10 +4,15 @@ import com.muzkat.reminder.dto.RemindDTO;
 import com.muzkat.reminder.model.User;
 import com.muzkat.reminder.service.RemindService;
 import com.muzkat.reminder.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -33,21 +38,23 @@ import java.util.Optional;
  * Обрабатывает запросы на создание, поиск, обновление и удаление напоминаний.
  * Также добавлены методы для получения списка напоминаний, отфильтрованных
  * и отсортированных по краткому описанию, дате и времени.
- * Использует {@link com.muzkat.reminder.service.RemindService} для выполнения бизнес-логики.
+ * Использует {@link com.muzkat.reminder.service.RemindService} для выполнения бизнес-логики
  */
 @RestController
 @RequestMapping("api/remind")
 @RequiredArgsConstructor
+@Tag(name = "Remind Controller", description = "Обработка запросов на создание, поиск, обновление, удаление напоминаний," +
+                                               "сортировка и фильтрация по краткому описанию, дате и времени")
 public class RemindController {
 
     /**
-     * Поле экземпляр RemindService
+     * Сервис по управлению напоминаниями
      */
     private final RemindService remindService;
 
 
     /**
-     * Поле экземпляр UserService
+     * Сервис по управлению пользователями
      */
     private final UserService userService;
 
@@ -58,8 +65,17 @@ public class RemindController {
      * @return Optional с DTO напоминания
      */
     @GetMapping("/by-id/{id}")
-    public ResponseEntity<Optional<RemindDTO>> findById(@PathVariable Long id) {
-        return ResponseEntity.ok(remindService.findRemindById(id));
+    @Operation(
+            summary = "Поиск по Id напоминания",
+            description = "Получение напоминания по Id",
+            parameters = {
+                    @Parameter(name = "id", description = "Id напоминания")
+            }
+    )
+    public ResponseEntity<RemindDTO> findById(@PathVariable Long id) {
+        return remindService.findRemindById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
 
@@ -69,8 +85,17 @@ public class RemindController {
      * @return Optional c DTO напоминания
      */
     @GetMapping("/by-title/{title}")
-    public ResponseEntity<Optional<RemindDTO>> findByTitle(@PathVariable String title) {
-        return ResponseEntity.ok(remindService.findRemindByTitle(title));
+    @Operation(
+            summary = "Поиск по краткому описанию напоминания",
+            description = "Получение напоминания по краткому описанию",
+            parameters = {
+                    @Parameter(name = "title", description = "Краткое описание напоминания")
+            }
+    )
+    public ResponseEntity<RemindDTO> findByTitle(@PathVariable String title) {
+        return remindService.findRemindByTitle(title)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
 
@@ -80,9 +105,17 @@ public class RemindController {
      * @return Optional c DTO напоминаний
      */
     @GetMapping("/by-description/{description}")
-    public ResponseEntity<Optional<RemindDTO>> findByDescription(@PathVariable String description) {
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(remindService.findRemindByDescription(description));
+    @Operation(
+            summary = "Поиск по полному описанию напоминания",
+            description = "Получение напоминания по полному описанию",
+            parameters = {
+                    @Parameter(name = "description", description = "Полное описание напоминания")
+            }
+    )
+    public ResponseEntity<RemindDTO> findByDescription(@PathVariable String description) {
+        return remindService.findRemindByDescription(description)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
 
@@ -100,11 +133,26 @@ public class RemindController {
      * @throws UsernameNotFoundException если пользователь с указанным адресом электронной почты не найден
      */
     @PostMapping("/create")
+    @Operation(
+            summary = "Создание напоминания",
+            description = "Создает новое напоминание для пользователя, прошедшего аутентификацию. В теле запроса " +
+                          "принимает объект RemindDTO, содержащий краткое и полное описание, дату и время напоминания",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "RemindDTO",
+                    required = true,
+            content = @Content(schema = @Schema(implementation = RemindDTO.class))),
+
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Напоминание создано"),
+                    @ApiResponse(responseCode = "404", description = "Пользователь с указанными данными не найден"),
+                    @ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера")
+            }
+    )
     public ResponseEntity<RemindDTO> createRemind(@Valid @RequestBody RemindDTO remindDTO,
                                                   Authentication authentication) {
         String email = authentication.getName();
         User user = userService.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("Пользоватль с указанными данными не найден"));
+                .orElseThrow(() -> new UsernameNotFoundException("Пользователь с указанными данными не найден"));
 
         RemindDTO createdRemind = remindService.createRemind(remindDTO, user);
 
@@ -123,6 +171,13 @@ public class RemindController {
      * @return cтатус, если напоминание успешно удалено
      */
     @DeleteMapping("/{id}")
+    @Operation(
+            summary = "Удаление напоминания",
+            description = "Удаляет напоминание пользователя, прошедшего аутентификацию",
+            parameters = {
+                    @Parameter(name = "id", description = "Id напоминания")
+            }
+    )
     public ResponseEntity<Void> deleteRemind(@PathVariable Long id) {
         remindService.deleteRemind(id);
         return ResponseEntity.noContent().build();
@@ -136,6 +191,19 @@ public class RemindController {
      * @return Optional с обновлённым DTO, если обновление завершено успешно
      */
     @PutMapping("/by-title/{title}")
+    @Operation(
+            summary = "Обновление напоминания по краткому описанию",
+            description = "Обновляет напоминание пользователя, прошедшего аутентификацию. В теле запроса " +
+                          "принимает краткое описание напоминания, которое пользователь хочет изменить, " +
+                          "и объект RemindDTO, содержащий обновленные краткое и полное описание, дату и время",
+            parameters = {
+                    @Parameter(name = "title", description = "Краткое описание напоминания")
+            },
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "RemindDTO",
+                    required = true,
+                    content = @Content(schema = @Schema(implementation = RemindDTO.class)))
+    )
     public ResponseEntity<Optional<RemindDTO>> updateRemindByTitle(@PathVariable String title, @Valid @RequestBody RemindDTO remind) {
         return ResponseEntity.ok(remindService.updateRemindByTitle(title, remind));
     }
@@ -148,16 +216,32 @@ public class RemindController {
      * либо null-значение, если напоминание не найдено
      */
     @PutMapping("/by-id/{id}")
-    public ResponseEntity<Optional<RemindDTO>> updateRemindById(@PathVariable Long id, @Valid @RequestBody RemindDTO remindDTO) {
-        return ResponseEntity.ok(remindService.updateRemindById(id, remindDTO));
+    @Operation(
+            summary = "Обновление напоминания по Id",
+            description = "Обновляет напоминание пользователя, прошедшего аутентификацию. В теле запроса " +
+                          "принимает Id напоминания, которое пользователь хочет изменить, " +
+                          "и объект RemindDTO, содержащий обновленные краткое и полное описание, дату и время",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "RemindDTO",
+                    required = true,
+                    content = @Content(schema = @Schema(implementation = RemindDTO.class)))
+    )
+    public ResponseEntity<RemindDTO> updateRemindById(@PathVariable Long id, @Valid @RequestBody RemindDTO remindDTO) {
+        return remindService.updateRemindById(id, remindDTO)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
 
     /**
-     * Получение списка со всеми напоминаниями
+     * Получение списка всех напоминаний
      * @return cтатус в случае удачного получения списка напоминаний
      * */
     @GetMapping("/all")
+    @Operation(
+            summary = "Получение списка всех напоминаний ползователя",
+            description = "Получает список всех напоминаний"
+    )
     public ResponseEntity<List<RemindDTO>> getAllReminds() {
         return ResponseEntity.ok(remindService.getAllReminds());
     }
@@ -171,6 +255,20 @@ public class RemindController {
      * @return список отфильтрованных напоминаний
      */
     @GetMapping("/filter")
+    @Operation(
+            summary = "Фильтрация напоминаний",
+            description = "Фильтрует напоминания по краткому описанию (title), дате (date) или времени (time). "
+                          + "Все параметры запроса являются необязательными и могут использоваться по отдельности или вместе",
+            parameters = {
+                    @Parameter(name = "title", description = "Краткое описание напоминания", required = false),
+                    @Parameter(name = "date", description = "Дата напоминания в формате YYYY-MM-DD", required = false),
+                    @Parameter(name = "time", description = "Время напоминания в формате HH:mm:ss", required = false)
+            },
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Список отфильтрованных напоминаний"),
+                    @ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера")
+            }
+    )
     public ResponseEntity<List<RemindDTO>> filterReminds(
             @RequestParam(required = false) String title,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
@@ -185,6 +283,15 @@ public class RemindController {
      * @return отсортированный список напоминаний
      */
     @GetMapping("/sorted")
+    @Operation(
+            summary = "Сортировка напоминаний",
+            description = "Сортирует список напоминаний по по краткому описанию (title), дате (date) или времени (time). "
+                          + "Все параметры запроса являются необязательными",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Список отсортированных напоминаний"),
+                    @ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера")
+            }
+    )
     public ResponseEntity<List<RemindDTO>> getSortedReminds(@RequestParam String sortBy) {
         return ResponseEntity.ok(remindService.getSortedReminds(sortBy));
     }

@@ -1,6 +1,7 @@
 package com.muzkat.reminder.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.Getter;
 
@@ -12,6 +13,7 @@ import lombok.Getter;
 @Data
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Schema(description = "DTO-класс для представления входящего обновления от Telegram API")
 public class TelegramUpdateDTO {
 
     /**

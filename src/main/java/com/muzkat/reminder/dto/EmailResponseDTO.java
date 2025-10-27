@@ -2,6 +2,7 @@ package com.muzkat.reminder.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.muzkat.reminder.model.Remind;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,6 +21,8 @@ import java.time.LocalTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "DTO-класс для представления результата отправки напоминания по электронной почте " +
+                      "с разделением даты и времени")
 public class EmailResponseDTO {
 
     /**
